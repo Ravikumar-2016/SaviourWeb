@@ -12,7 +12,7 @@ export default function DonatePage() {
         <div className="mt-12 text-center">
           <h2 className="text-2xl font-semibold mb-4">Other Ways to Support</h2>
           <p className="mb-4">If you prefer to donate by check or have any questions about donating, please contact our donation team:</p>
-          <p className="font-semibold">donations@saviour.org | +91 8955192479</p>
+          <p className="font-semibold">saviourglobalinfo@gmail.com | +91 93xxxxxxx</p>
         </div>
       </div>
     </div>
