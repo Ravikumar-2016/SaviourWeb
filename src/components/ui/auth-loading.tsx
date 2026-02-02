@@ -36,7 +36,7 @@ interface DashboardSkeletonProps {
   type?: "user" | "admin"
 }
 
-export function DashboardSkeleton({ type = "user" }: DashboardSkeletonProps) {
+export function DashboardSkeleton({ }: DashboardSkeletonProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header skeleton */}

@@ -100,16 +100,16 @@ export default function Header() {
       {isMenuOpen && (
         <div className="md:hidden">
           <nav className="flex flex-col items-center py-4 space-y-4">
-            <Link href="/about" className="hover:text-blue-600 transition-colors">
+            <Link href="/about" className="hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
               About
             </Link>
-            <Link href="/services" className="hover:text-blue-600 transition-colors">
+            <Link href="/services" className="hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
               Services
             </Link>
-            <Link href="/contact" className="hover:text-blue-600 transition-colors">
+            <Link href="/contact" className="hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
               Contact
             </Link>
-            <Link href="/donate" className="hover:text-blue-600 transition-colors">
+            <Link href="/donate" className="hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
               Donate
             </Link>
             {!user && (
@@ -119,6 +119,7 @@ export default function Header() {
                   variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <Link href="/auth/login">Log In</Link>
                 </Button>
@@ -127,6 +128,7 @@ export default function Header() {
                   variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <Link href="/auth/signup">Sign Up</Link>
                 </Button>
@@ -139,13 +141,14 @@ export default function Header() {
                   variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <Link href={user?.email === "saviourglobalinfo@gmail.com" ? "/admin-dashboard" : "/dashboard"}>
                     Dashboard
                   </Link>
                 </Button>
                 <Button
-                  onClick={handleSignOut}
+                  onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
                   variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
