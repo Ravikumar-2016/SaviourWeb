@@ -3,13 +3,6 @@
 <!-- Animated Header -->
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667eea,100:764ba2&height=220&section=header&text=SAVIOUR&fontSize=90&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=🛡️%20Disaster%20Management%20Platform&descSize=25&descAlignY=55" width="100%"/>
 
-<!-- Typing Animation -->
-<a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=600&size=24&duration=3000&pause=1000&color=667EEA&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=100&lines=Empowering+Communities+During+Disasters+🌍;Real-time+Emergency+Response+System+🚨;Connecting+People+When+It+Matters+Most+🤝" alt="Typing SVG" />
-</a>
-
-<br/>
-
 <!-- Badges Row 1 -->
 <p>
   <a href="https://saviour-web.vercel.app"><img src="https://img.shields.io/badge/🌐_Live_Demo-saviour--web.vercel.app-667eea?style=for-the-badge" alt="Live Demo"/></a>
