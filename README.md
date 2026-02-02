@@ -303,13 +303,27 @@ CONTACT_RECIPIENT_EMAIL=contact@saviour.app
 
 <div align="center">
 
-| Home Page | Dashboard | Emergency SOS |
-|:---------:|:---------:|:-------------:|
-| ![Home](https://via.placeholder.com/300x200/667eea/fff?text=Home+Page) | ![Dashboard](https://via.placeholder.com/300x200/764ba2/fff?text=Dashboard) | ![SOS](https://via.placeholder.com/300x200/dc3545/fff?text=SOS+Alert) |
+### 🏠 Home Page
+The main landing page showcasing the disaster management platform with a modern, intuitive design.
 
-| Weather | Safety Guides | Admin Panel |
-|:-------:|:-------------:|:-----------:|
-| ![Weather](https://via.placeholder.com/300x200/17a2b8/fff?text=Weather) | ![Safety](https://via.placeholder.com/300x200/28a745/fff?text=Safety) | ![Admin](https://via.placeholder.com/300x200/343a40/fff?text=Admin) |
+### 📊 Dashboard
+Real-time dashboard providing comprehensive overview of emergency situations, weather alerts, and community resources.
+
+### 🆘 Emergency SOS
+One-tap emergency broadcast system with GPS tracking for rapid response during critical situations.
+
+### 🌤️ Weather Monitoring
+Live weather data integration with severe alert notifications and 7-day forecasting capabilities.
+
+### 📚 Safety Guides
+Comprehensive disaster-specific safety guidelines with video tutorials and offline access features.
+
+### 👨‍💼 Admin Panel
+Advanced management interface for administrators to coordinate resources, monitor alerts, and manage community.
+
+<br/>
+
+> 💡 **Tip:** Visit our [live demo](https://saviour-web.vercel.app) to explore all features in action!
 
 </div>
 
