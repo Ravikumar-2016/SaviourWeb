@@ -3,14 +3,6 @@
 <!-- Header Banner -->
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=🛡️%20SAVIOUR&fontSize=80&fontColor=fff&animation=twinkling&fontAlignY=35&desc=Disaster%20Management%20Platform&descSize=25&descAlignY=55" width="100%"/>
 
-<!-- Badges Row -->
-<p>
-  <a href="https://saviour-web.vercel.app"><img src="https://img.shields.io/badge/STATUS-LIVE-brightgreen?style=for-the-badge&logo=statuspage&logoColor=white" alt="Status"/></a>
-  <a href="https://github.com/Ravikumar-2016/SaviourWeb"><img src="https://img.shields.io/github/stars/Ravikumar-2016/SaviourWeb?style=for-the-badge&logo=github&color=yellow" alt="Stars"/></a>
-  <a href="https://github.com/Ravikumar-2016/SaviourWeb/blob/main/LICENSE"><img src="https://img.shields.io/badge/LICENSE-Apache%202.0-blue?style=for-the-badge" alt="License"/></a>
-  <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome"/>
-</p>
-
 <!-- Typing Animation -->
 <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=3B82F6&center=true&vCenter=true&random=false&width=600&lines=Empowering+Communities+During+Disasters;Real-time+Emergency+Coordination;Save+Lives+with+Technology;Community+Resilience+Platform" alt="Typing SVG" /></a>
 
