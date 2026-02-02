@@ -1,160 +1,369 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=SAVIOUR&fontSize=80&fontColor=fff&animation=twinkling&fontAlignY=35&desc=Disaster%20Management%20Platform&descSize=25&descAlignY=55" width="100%"/>
+<!-- Animated Header -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:667eea,100:764ba2&height=220&section=header&text=SAVIOUR&fontSize=90&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=🛡️%20Disaster%20Management%20Platform&descSize=25&descAlignY=55" width="100%"/>
 
-<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=3B82F6&center=true&vCenter=true&random=false&width=600&lines=Empowering+Communities+During+Disasters;Real-time+Emergency+Coordination;Save+Lives+with+Technology;Community+Resilience+Platform" alt="Typing SVG" /></a>
+<!-- Typing Animation -->
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=600&size=24&duration=3000&pause=1000&color=667EEA&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=100&lines=Empowering+Communities+During+Disasters+🌍;Real-time+Emergency+Response+System+🚨;Connecting+People+When+It+Matters+Most+🤝" alt="Typing SVG" />
+</a>
 
-<br/><br/>
+<br/>
 
-<a href="https://saviour-web.vercel.app" target="_blank"><img src="https://img.shields.io/badge/LIVE_DEMO-Visit_Platform-0066FF?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo"/></a>
-&nbsp;
-<a href="https://github.com/Ravikumar-2016/SaviourWeb" target="_blank"><img src="https://img.shields.io/badge/SOURCE_CODE-GitHub-181717?style=for-the-badge&logo=github" alt="GitHub"/></a>
+<!-- Badges Row 1 -->
+<p>
+  <a href="https://saviour-web.vercel.app"><img src="https://img.shields.io/badge/🌐_Live_Demo-saviour--web.vercel.app-667eea?style=for-the-badge" alt="Live Demo"/></a>
+  <a href="https://github.com/Ravikumar-2016/SaviourWeb"><img src="https://img.shields.io/badge/📦_Source-GitHub-181717?style=for-the-badge&logo=github" alt="GitHub"/></a>
+</p>
+
+<!-- Badges Row 2 -->
+<p>
+  <img src="https://img.shields.io/badge/Next.js-15.1-black?style=flat-square&logo=next.js" alt="Next.js"/>
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react" alt="React"/>
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript" alt="TypeScript"/>
+  <img src="https://img.shields.io/badge/Firebase-Auth%20%26%20DB-FFCA28?style=flat-square&logo=firebase" alt="Firebase"/>
+  <img src="https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?style=flat-square&logo=tailwindcss" alt="TailwindCSS"/>
+</p>
+
+<br/>
+
+<!-- Quick Action Buttons -->
+<a href="https://saviour-web.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/🚀_LAUNCH_APP-Visit_Platform-667eea?style=for-the-badge&labelColor=764ba2" alt="Launch App"/>
+</a>
+&nbsp;&nbsp;
+<a href="https://github.com/Ravikumar-2016/SaviourWeb/fork" target="_blank">
+  <img src="https://img.shields.io/badge/🍴_Fork_Repo-Contribute-28a745?style=for-the-badge" alt="Fork"/>
+</a>
 
 </div>
-
-<br/>
-
-## About
-
-**SAVIOUR** is a next-generation disaster management platform designed to **save lives** and **strengthen community resilience** during emergencies. Built with cutting-edge web technologies, it provides real-time coordination, instant alerts, and comprehensive resource management.
-
-<br/>
-
-## Features
-
-| Feature | Description |
-|---------|-------------|
-| **Emergency SOS** | Real-time alerts with GPS location tracking |
-| **Priority Levels** | High/Medium/Low emergency categorization |
-| **Weather Integration** | OpenWeatherMap local alerts |
-| **Interactive Maps** | Visualize emergencies & resources |
-| **Community Chat** | Local coordination channels |
-| **Resource Management** | Track and share essential supplies |
-| **Safety Guidelines** | Comprehensive emergency protocols |
-| **Video Tutorials** | First aid & safety procedures |
-
-<br/>
-
-## Tech Stack
-
-<div align="center">
-
-**Frontend:** Next.js 15 • React 18 • TypeScript • TailwindCSS • Framer Motion
-
-**Backend:** Firebase Firestore • Firebase Auth • Vercel
-
-**UI:** shadcn/ui • Radix UI • Zustand
-
-**Maps & APIs:** Leaflet • OpenWeatherMap • Nominatim
-
-</div>
-
-<br/>
-
-## Project Structure
-
-```
-saviour/
-├── public/                 # Static assets
-├── src/
-│   ├── app/                # Next.js App Router
-│   │   ├── api/            # API routes
-│   │   ├── auth/           # Authentication pages
-│   │   ├── dashboard/      # User dashboard
-│   │   └── admin-dashboard/# Admin interface
-│   ├── components/         # Reusable UI components
-│   │   ├── Safety/         # Disaster safety guides
-│   │   └── ui/             # Base UI components
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Utilities & actions
-│   └── types/              # TypeScript definitions
-└── ...                     # Config files
-```
-
-<br/>
-
-## Quick Start
-
-**Prerequisites:** Node.js v18+, npm or yarn, Firebase account
-
-**1. Clone the repository**
-```bash
-git clone https://github.com/Ravikumar-2016/SaviourWeb.git
-cd SaviourWeb/saviour
-```
-
-**2. Install dependencies**
-```bash
-npm install
-```
-
-**3. Setup environment variables**
-```bash
-cp .env.example .env.local
-```
-
-**4. Start development server**
-```bash
-npm run dev
-```
-
-<br/>
-
-## Environment Variables
-
-Create a `.env.local` file:
-
-```env
-# API Keys
-NEXT_PUBLIC_GEMINI_API_KEY=
-NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
-
-# Auth
-JWT_SECRET=
-NEXTAUTH_URL=
-NEXTAUTH_SECRET=
-BASE_URL=
-
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
-
-# Email (SMTP)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM_EMAIL=
-SMTP_FROM_NAME=Saviour_Team
-CONTACT_RECIPIENT_EMAIL=
-```
-
-<br/>
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
 
 <br/>
 
 ---
 
+## 📋 Table of Contents
+
+- [🌟 About](#-about)
+- [✨ Features](#-features)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Quick Start](#-quick-start)
+- [🔥 Firebase Setup](#-firebase-setup)
+- [🔐 Environment Variables](#-environment-variables)
+- [📱 Screenshots](#-screenshots)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
+---
+
+## 🌟 About
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Purpose-Save_Lives-dc3545?style=for-the-badge" alt="Purpose"/>
+  <img src="https://img.shields.io/badge/Focus-Community_Resilience-28a745?style=for-the-badge" alt="Focus"/>
+</div>
+
+<br/>
+
+**SAVIOUR** is a comprehensive disaster management platform designed to **save lives** and **strengthen community resilience** during emergencies. Built with modern web technologies, it enables real-time coordination, instant alerts, and efficient resource management.
+
+### 🎯 Mission
+> *"When disaster strikes, every second counts. SAVIOUR connects communities, coordinates resources, and saves lives through technology."*
+
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🆘 Emergency Response
+- **SOS Alerts** - One-tap emergency broadcast with GPS
+- **Priority Levels** - High/Medium/Low categorization
+- **Real-time Tracking** - Live location sharing
+- **Push Notifications** - Instant alert delivery
+
+</td>
+<td width="50%">
+
+### 🗺️ Smart Mapping
+- **Interactive Maps** - Visualize emergencies & resources
+- **Safe Zones** - Identify evacuation points
+- **Resource Locations** - Find nearby supplies
+- **Route Planning** - Navigate to safety
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🌤️ Weather Intelligence
+- **Live Weather Data** - OpenWeatherMap integration
+- **Severe Alerts** - Storm & disaster warnings
+- **Forecasting** - 7-day weather predictions
+- **Historical Data** - Past disaster analysis
+
+</td>
+<td width="50%">
+
+### 👥 Community Hub
+- **Local Chat Rooms** - Coordinate with neighbors
+- **Resource Sharing** - Offer/request supplies
+- **Volunteer Network** - Connect helpers
+- **Admin Dashboard** - Manage community
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📚 Safety Resources
+- **Disaster Guides** - Step-by-step protocols
+- **Video Tutorials** - First aid & safety
+- **Offline Access** - Critical info without internet
+- **Multi-language** - Inclusive support
+
+</td>
+<td width="50%">
+
+### 🔐 Secure Platform
+- **Firebase Auth** - Google & Email login
+- **Role-based Access** - User & Admin roles
+- **Data Encryption** - Secure communications
+- **Privacy First** - GDPR compliant
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🛠️ Tech Stack
+
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer" width="100%"/>
+| Category | Technologies |
+|:--------:|:------------|
+| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js_15-black?style=flat-square&logo=next.js) ![React](https://img.shields.io/badge/React_18-61DAFB?style=flat-square&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) |
+| **Styling** | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) ![Framer](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) ![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=flat-square) |
+| **Backend** | ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel) |
+| **APIs** | ![OpenWeather](https://img.shields.io/badge/OpenWeatherMap-EB6E4C?style=flat-square) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=google&logoColor=white) |
+| **State** | ![Zustand](https://img.shields.io/badge/Zustand-433E38?style=flat-square) ![React Query](https://img.shields.io/badge/React_Hooks-61DAFB?style=flat-square&logo=react&logoColor=black) |
 
-**If this project helped you, consider giving it a star!**
+</div>
 
-Built with ❤️ by the **Saviour Team**
+---
+
+## 📁 Project Structure
+
+```
+saviour/
+├── 📂 public/              # Static assets & safety videos
+├── 📂 src/
+│   ├── 📂 app/             # Next.js App Router
+│   │   ├── 📂 api/         # API routes
+│   │   ├── 📂 auth/        # Login, Signup, Error pages
+│   │   ├── 📂 dashboard/   # User dashboard & features
+│   │   └── 📂 admin-dashboard/  # Admin management panel
+│   ├── 📂 components/
+│   │   ├── 📂 Safety/      # Disaster-specific safety guides
+│   │   ├── 📂 ui/          # shadcn/ui components
+│   │   └── 📂 Modals/      # Modal components
+│   ├── 📂 hooks/           # Custom React hooks
+│   ├── 📂 lib/             # Utilities, Firebase config, actions
+│   └── 📂 types/           # TypeScript definitions
+├── 📄 .env.example         # Environment template
+├── 📄 next.config.js       # Next.js configuration
+├── 📄 tailwind.config.js   # Tailwind configuration
+└── 📄 package.json         # Dependencies
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js** v18+ ([Download](https://nodejs.org/))
+- **npm** or **yarn** or **pnpm**
+- **Firebase Account** ([Create Free](https://firebase.google.com/))
+
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Ravikumar-2016/SaviourWeb.git
+cd SaviourWeb/saviour
+
+# 2. Install dependencies
+npm install
+
+# 3. Setup environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys
+
+# 4. Start development server
+npm run dev
+
+# 5. Open in browser
+# http://localhost:3000
+```
+
+---
+
+## 🔥 Firebase Setup
+
+<details>
+<summary><b>🔧 Click to expand Firebase configuration steps</b></summary>
+
+<br/>
+
+### Step 1: Create Firebase Project
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click **"Create a project"**
+3. Enter project name (e.g., "saviour-app")
+4. Enable Google Analytics (optional)
+
+### Step 2: Enable Authentication
+1. In Firebase Console, go to **Authentication** > **Sign-in method**
+2. Enable **Email/Password**
+3. Enable **Google** provider
+4. **⚠️ IMPORTANT:** Add your domain to **Authorized domains**:
+   - `localhost` (for development)
+   - `saviour-web.vercel.app` (for production)
+   - Your custom domain (if any)
+
+### Step 3: Create Firestore Database
+1. Go to **Firestore Database** > **Create database**
+2. Start in **production mode**
+3. Choose a location closest to your users
+
+### Step 4: Get Configuration
+1. Go to **Project Settings** > **General**
+2. Under "Your apps", click **Web** icon (`</>`)
+3. Register app and copy the config values
+
+### Step 5: Add to Environment
+Copy the Firebase config values to your `.env.local` file.
+
+</details>
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# ═══════════════════════════════════════════════════════════
+# 🔥 FIREBASE CONFIGURATION (Required)
+# ═══════════════════════════════════════════════════════════
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef123456
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
+
+# ═══════════════════════════════════════════════════════════
+# 🌐 API KEYS (Required for full functionality)
+# ═══════════════════════════════════════════════════════════
+NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=your_openweathermap_key
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
+
+# ═══════════════════════════════════════════════════════════
+# 🔒 AUTH CONFIGURATION (Required)
+# ═══════════════════════════════════════════════════════════
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_super_secret_key_here
+JWT_SECRET=your_jwt_secret_key
+BASE_URL=http://localhost:3000
+
+# ═══════════════════════════════════════════════════════════
+# 📧 EMAIL CONFIGURATION (Optional - for contact form)
+# ═══════════════════════════════════════════════════════════
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your_app_password
+SMTP_FROM_EMAIL=noreply@saviour.app
+SMTP_FROM_NAME=Saviour Team
+CONTACT_RECIPIENT_EMAIL=contact@saviour.app
+```
+
+> ⚠️ **Important**: Never commit `.env.local` to version control!
+
+---
+
+## 📱 Screenshots
+
+<div align="center">
+
+| Home Page | Dashboard | Emergency SOS |
+|:---------:|:---------:|:-------------:|
+| ![Home](https://via.placeholder.com/300x200/667eea/fff?text=Home+Page) | ![Dashboard](https://via.placeholder.com/300x200/764ba2/fff?text=Dashboard) | ![SOS](https://via.placeholder.com/300x200/dc3545/fff?text=SOS+Alert) |
+
+| Weather | Safety Guides | Admin Panel |
+|:-------:|:-------------:|:-----------:|
+| ![Weather](https://via.placeholder.com/300x200/17a2b8/fff?text=Weather) | ![Safety](https://via.placeholder.com/300x200/28a745/fff?text=Safety) | ![Admin](https://via.placeholder.com/300x200/343a40/fff?text=Admin) |
+
+</div>
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+```bash
+# 1. Fork the repository
+# 2. Create your feature branch
+git checkout -b feature/AmazingFeature
+
+# 3. Make your changes and commit
+git commit -m '✨ Add AmazingFeature'
+
+# 4. Push to your branch
+git push origin feature/AmazingFeature
+
+# 5. Open a Pull Request
+```
+
+### 📝 Contribution Guidelines
+- Follow the existing code style
+- Write meaningful commit messages
+- Update documentation as needed
+- Test your changes thoroughly
+
+---
+
+## 📄 License
+
+<div align="center">
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+<br/>
+
+---
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:667eea,100:764ba2&height=120&section=footer" width="100%"/>
+
+**⭐ Star this repository if it helped you!**
+
+Built with ❤️ by **[Ravikumar](https://github.com/Ravikumar-2016)** & the **Saviour Team**
+
+<br/>
+
+<a href="https://saviour-web.vercel.app">🌐 Website</a> •
+<a href="https://github.com/Ravikumar-2016/SaviourWeb">📦 GitHub</a> •
+<a href="https://github.com/Ravikumar-2016/SaviourWeb/issues">🐛 Report Bug</a> •
+<a href="https://github.com/Ravikumar-2016/SaviourWeb/issues">💡 Request Feature</a>
 
 </div>

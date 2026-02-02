@@ -8,7 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { auth, db } from "@/lib/firebase"
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "firebase/auth"
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
+  createUserWithEmailAndPassword, 
+  updateProfile, 
+  onAuthStateChanged 
+} from "firebase/auth"
 import { doc, setDoc, getDoc } from "firebase/firestore"
 import { Loader2, User, Mail, Lock, MapPin, Eye, EyeOff, AlertCircle, CheckCircle2, Shield } from "lucide-react"
 import { AuthLoading } from "@/components/ui/auth-loading"
@@ -47,17 +55,68 @@ export default function SignupPage() {
     return () => unsubscribe()
   }, [router])
 
+  // Check for redirect result (for mobile/browsers that block popups)
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        if (result?.user) {
+          const existingUser = await getDoc(doc(db, "users", result.user.uid))
+          if (existingUser.exists()) {
+            router.push("/dashboard")
+            return
+          }
+          await setDoc(doc(db, "users", result.user.uid), {
+            uid: result.user.uid,
+            email: result.user.email,
+            fullName: result.user.displayName || "",
+            city: "",
+            photoURL: result.user.photoURL || "",
+            role: "user",
+            provider: "google",
+            createdAt: new Date().toISOString(),
+          })
+          setSuccess(true)
+          setTimeout(() => router.push("/dashboard"), 1000)
+        }
+      } catch (error) {
+        console.error("Redirect result error:", error)
+      }
+    }
+    checkRedirectResult()
+  }, [router])
+
   // Password validation
   const validatePassword = (pwd: string) => {
     if (pwd.length < 6) return "Password must be at least 6 characters"
     return null
   }
 
+  // Detect if we should use redirect instead of popup
+  const isMobileOrSafari = () => {
+    if (typeof window === "undefined") return false
+    const ua = navigator.userAgent.toLowerCase()
+    const isMobile = /iphone|ipad|ipod|android|webos|blackberry|windows phone/i.test(ua)
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua)
+    return isMobile || isSafari
+  }
+
   const handleGoogleSignup = async () => {
     setGoogleLoading(true)
     setError(null)
+    
     const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    })
+    
     try {
+      // Use redirect for mobile/Safari, popup for desktop
+      if (isMobileOrSafari()) {
+        await signInWithRedirect(auth, provider)
+        return // Page will redirect
+      }
+      
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       
@@ -82,8 +141,21 @@ export default function SignupPage() {
       setTimeout(() => router.push("/dashboard"), 1000)
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string }
+      console.error("Google signup error:", err.code, err.message)
+      
       if (err.code === "auth/popup-closed-by-user") {
         setError(null)
+      } else if (err.code === "auth/popup-blocked") {
+        try {
+          await signInWithRedirect(auth, provider)
+          return
+        } catch {
+          setError("Please allow popups or try again.")
+        }
+      } else if (err.code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized. Please contact support.")
+      } else if (err.code === "auth/network-request-failed") {
+        setError("Network error. Please check your connection.")
       } else {
         setError(err?.message || "Google signup failed. Please try again.")
       }

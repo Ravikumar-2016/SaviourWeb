@@ -7,8 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { auth, db } from "@/lib/firebase"
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+import { 
+  signInWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged 
+} from "firebase/auth"
+import { doc, getDoc, setDoc } from "firebase/firestore"
 import { Loader2, User, Users, Shield, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { AuthLoading } from "@/components/ui/auth-loading"
 
@@ -25,6 +32,43 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const router = useRouter()
+
+  // Check for redirect result (for mobile/browsers that block popups)
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        if (result?.user) {
+          // User signed in via redirect
+          const userDoc = await getDoc(doc(db, "users", result.user.uid))
+          if (userDoc.exists()) {
+            router.replace("/dashboard")
+            return
+          }
+          const adminDoc = await getDoc(doc(db, "admins", result.user.uid))
+          if (adminDoc.exists()) {
+            router.replace("/admin-dashboard")
+            return
+          }
+          // If no existing account, create a user account
+          await setDoc(doc(db, "users", result.user.uid), {
+            uid: result.user.uid,
+            email: result.user.email,
+            fullName: result.user.displayName || "",
+            city: "",
+            photoURL: result.user.photoURL || "",
+            role: "user",
+            provider: "google",
+            createdAt: new Date().toISOString(),
+          })
+          router.replace("/dashboard")
+        }
+      } catch (error) {
+        console.error("Redirect result error:", error)
+      }
+    }
+    checkRedirectResult()
+  }, [router])
 
   // Check if user is already logged in
   useEffect(() => {
@@ -93,27 +137,76 @@ export default function LoginPage() {
     }
   }
 
-  // Google login
+  // Detect if we should use redirect instead of popup
+  const isMobileOrSafari = () => {
+    if (typeof window === "undefined") return false
+    const ua = navigator.userAgent.toLowerCase()
+    const isMobile = /iphone|ipad|ipod|android|webos|blackberry|windows phone/i.test(ua)
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua)
+    return isMobile || isSafari
+  }
+
+  // Google login with fallback to redirect
   const handleGoogleLogin = async () => {
     setError(null)
     setGoogleLoading(true)
+    
+    const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    })
+    
     try {
-      const provider = new GoogleAuthProvider()
+      // Use redirect for mobile/Safari, popup for desktop
+      if (isMobileOrSafari()) {
+        await signInWithRedirect(auth, provider)
+        return // Page will redirect
+      }
+      
       const result = await signInWithPopup(auth, provider)
       const collectionName = getCollectionByRole(selectedRole)
       const userDoc = await getDoc(doc(db, collectionName, result.user.uid))
+      
       if (!userDoc.exists()) {
-        setError(`No ${selectedRole} account found. Please sign up first or select the correct role.`)
-        setGoogleLoading(false)
-        return
+        // If admin role selected but no admin account exists
+        if (selectedRole === "admin") {
+          setError("No admin account found. Please contact administrator or sign in as user.")
+          setGoogleLoading(false)
+          return
+        }
+        // For user role, create account if doesn't exist
+        await setDoc(doc(db, "users", result.user.uid), {
+          uid: result.user.uid,
+          email: result.user.email,
+          fullName: result.user.displayName || "",
+          city: "",
+          photoURL: result.user.photoURL || "",
+          role: "user",
+          provider: "google",
+          createdAt: new Date().toISOString(),
+        })
       }
       router.replace(getDashboardByRole(selectedRole))
     } catch (error: unknown) {
-      const err = error as { code?: string }
+      const err = error as { code?: string; message?: string }
+      console.error("Google login error:", err.code, err.message)
+      
       if (err.code === "auth/popup-closed-by-user") {
         setError(null)
+      } else if (err.code === "auth/popup-blocked") {
+        // Fallback to redirect if popup is blocked
+        try {
+          await signInWithRedirect(auth, provider)
+          return
+        } catch {
+          setError("Please allow popups or try again.")
+        }
+      } else if (err.code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized. Please contact support.")
+      } else if (err.code === "auth/network-request-failed") {
+        setError("Network error. Please check your connection.")
       } else {
-        setError("Google login failed. Please try again.")
+        setError(err.message || "Google login failed. Please try again.")
       }
       setGoogleLoading(false)
     }
