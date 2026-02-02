@@ -61,10 +61,6 @@ Support networks & coordination
 
 ## ✨ Features at a Glance
 
-<div align="center">
-<img src="https://github-readme-stats.vercel.app/api/pin/?username=Ravikumar-2016&repo=SaviourWeb&theme=tokyonight&hide_border=true" alt="Repo Card"/>
-</div>
-
 <details>
 <summary><h3>🚨 Emergency Alert System</h3></summary>
 <br/>
@@ -273,65 +269,6 @@ SMTP_FROM_NAME=Saviour_Team
 CONTACT_RECIPIENT_EMAIL=
 ```
 
-</details>
-
----
-
-## 🚢 Deployment
-
-<div align="center">
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRavikumar-2016%2FSaviourWeb)
-
-**One-click deploy to Vercel** • *Recommended for production*
-
-</div>
-
----
-
-## ⚡ Performance
-
-<div align="center">
-<table>
-<tr>
-<td align="center">
-
-### 🚀 
-**Location Caching**
-<br/>
-<sub>Faster emergency response</sub>
-
-</td>
-<td align="center">
-
-### ⚡
-**Parallel Fetching**
-<br/>
-<sub>Optimized data loading</sub>
-
-</td>
-<td align="center">
-
-### 📱
-**Progressive Loading**
-<br/>
-<sub>Enhanced UX</sub>
-
-</td>
-<td align="center">
-
-### 🌐
-**API Optimization**
-<br/>
-<sub>Rate limiting & caching</sub>
-
-</td>
-</tr>
-</table>
-</div>
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:
@@ -349,42 +286,7 @@ git push origin feature/amazing-feature
 
 # 5️⃣ Open a Pull Request
 ```
-
-<div align="center">
-
-**Found a bug?** [Open an issue](https://github.com/Ravikumar-2016/SaviourWeb/issues)
-&nbsp;•&nbsp;
-**Have a feature idea?** [Start a discussion](https://github.com/Ravikumar-2016/SaviourWeb/discussions)
-
-</div>
-
 ---
-
-## 📄 License
-
-<div align="center">
-
-Distributed under the **Apache License 2.0**. See `LICENSE` for more information.
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
-
-</div>
-
----
-
-## 🙏 Acknowledgments
-
-<div align="center">
-
-Special thanks to all the amazing open source projects that made SAVIOUR possible:
-
-[![Next.js](https://img.shields.io/badge/Next.js-000?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-000?style=flat-square&logo=vercel)](https://vercel.com/)
-[![OpenWeatherMap](https://img.shields.io/badge/OpenWeatherMap-EB6E4B?style=flat-square&logo=openweathermap&logoColor=white)](https://openweathermap.org/)
-
-</div>
 
 ---
 
@@ -402,7 +304,4 @@ Special thanks to all the amazing open source projects that made SAVIOUR possibl
 Built with ❤️ by the **Saviour Team**
 
 <br/>
-
-[![GitHub](https://img.shields.io/badge/GitHub-@Ravikumar--2016-181717?style=social&logo=github)](https://github.com/Ravikumar-2016)
-
 </div>
