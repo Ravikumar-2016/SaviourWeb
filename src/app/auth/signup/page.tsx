@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -33,19 +33,28 @@ export default function SignupPage() {
   const [name, setName] = useState("")
   const [city, setCity] = useState("")
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const isGoogleAuthInProgress = useRef(false)
+  const hasRedirected = useRef(false)
   const router = useRouter()
 
   // Check if user is already logged in
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
+      // Skip if Google auth is in progress (let the handler manage the flow)
+      if (isGoogleAuthInProgress.current) {
+        return
+      }
+      
+      if (firebaseUser && !hasRedirected.current) {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
         if (userDoc.exists()) {
+          hasRedirected.current = true
           router.replace("/dashboard")
           return
         }
         const adminDoc = await getDoc(doc(db, "admins", firebaseUser.uid))
         if (adminDoc.exists()) {
+          hasRedirected.current = true
           router.replace("/admin-dashboard")
           return
         }
@@ -60,12 +69,26 @@ export default function SignupPage() {
     const checkRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth)
-        if (result?.user) {
+        if (result?.user && !hasRedirected.current) {
+          isGoogleAuthInProgress.current = true
+          
+          // Check if user already exists
           const existingUser = await getDoc(doc(db, "users", result.user.uid))
           if (existingUser.exists()) {
-            router.push("/dashboard")
+            hasRedirected.current = true
+            router.replace("/dashboard")
             return
           }
+          
+          // Check if user exists as admin
+          const existingAdmin = await getDoc(doc(db, "admins", result.user.uid))
+          if (existingAdmin.exists()) {
+            hasRedirected.current = true
+            router.replace("/admin-dashboard")
+            return
+          }
+          
+          // Create new user account
           await setDoc(doc(db, "users", result.user.uid), {
             uid: result.user.uid,
             email: result.user.email,
@@ -77,10 +100,12 @@ export default function SignupPage() {
             createdAt: new Date().toISOString(),
           })
           setSuccess(true)
-          setTimeout(() => router.push("/dashboard"), 1000)
+          hasRedirected.current = true
+          setTimeout(() => router.replace("/dashboard"), 1000)
         }
       } catch (error) {
         console.error("Redirect result error:", error)
+        isGoogleAuthInProgress.current = false
       }
     }
     checkRedirectResult()
@@ -104,6 +129,7 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     setGoogleLoading(true)
     setError(null)
+    isGoogleAuthInProgress.current = true
     
     const provider = new GoogleAuthProvider()
     provider.setCustomParameters({
@@ -120,13 +146,23 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       
-      // Check if user already exists
+      // Check if user already exists in users collection
       const existingUser = await getDoc(doc(db, "users", user.uid))
       if (existingUser.exists()) {
-        router.push("/dashboard")
+        hasRedirected.current = true
+        router.replace("/dashboard")
+        return
+      }
+      
+      // Check if user exists as admin
+      const existingAdmin = await getDoc(doc(db, "admins", user.uid))
+      if (existingAdmin.exists()) {
+        hasRedirected.current = true
+        router.replace("/admin-dashboard")
         return
       }
 
+      // Create new user account
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: user.email,
@@ -137,8 +173,10 @@ export default function SignupPage() {
         provider: "google",
         createdAt: new Date().toISOString(),
       })
+      
       setSuccess(true)
-      setTimeout(() => router.push("/dashboard"), 1000)
+      hasRedirected.current = true
+      setTimeout(() => router.replace("/dashboard"), 1000)
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string }
       console.error("Google signup error:", err.code, err.message)
@@ -161,6 +199,7 @@ export default function SignupPage() {
       }
     } finally {
       setGoogleLoading(false)
+      isGoogleAuthInProgress.current = false
     }
   }
 

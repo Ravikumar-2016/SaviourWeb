@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -31,6 +31,8 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const isGoogleAuthInProgress = useRef(false)
+  const hasRedirected = useRef(false)
   const router = useRouter()
 
   // Check for redirect result (for mobile/browsers that block popups)
@@ -38,15 +40,18 @@ export default function LoginPage() {
     const checkRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth)
-        if (result?.user) {
+        if (result?.user && !hasRedirected.current) {
+          isGoogleAuthInProgress.current = true
           // User signed in via redirect
           const userDoc = await getDoc(doc(db, "users", result.user.uid))
           if (userDoc.exists()) {
+            hasRedirected.current = true
             router.replace("/dashboard")
             return
           }
           const adminDoc = await getDoc(doc(db, "admins", result.user.uid))
           if (adminDoc.exists()) {
+            hasRedirected.current = true
             router.replace("/admin-dashboard")
             return
           }
@@ -61,10 +66,12 @@ export default function LoginPage() {
             provider: "google",
             createdAt: new Date().toISOString(),
           })
+          hasRedirected.current = true
           router.replace("/dashboard")
         }
       } catch (error) {
         console.error("Redirect result error:", error)
+        isGoogleAuthInProgress.current = false
       }
     }
     checkRedirectResult()
@@ -73,15 +80,22 @@ export default function LoginPage() {
   // Check if user is already logged in
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
+      // Skip if Google auth is in progress (let the handler manage the flow)
+      if (isGoogleAuthInProgress.current) {
+        return
+      }
+      
+      if (firebaseUser && !hasRedirected.current) {
         // Check which collection the user belongs to
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
         if (userDoc.exists()) {
+          hasRedirected.current = true
           router.replace("/dashboard")
           return
         }
         const adminDoc = await getDoc(doc(db, "admins", firebaseUser.uid))
         if (adminDoc.exists()) {
+          hasRedirected.current = true
           router.replace("/admin-dashboard")
           return
         }
@@ -150,6 +164,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError(null)
     setGoogleLoading(true)
+    isGoogleAuthInProgress.current = true
     
     const provider = new GoogleAuthProvider()
     provider.setCustomParameters({
@@ -172,6 +187,7 @@ export default function LoginPage() {
         if (selectedRole === "admin") {
           setError("No admin account found. Please contact administrator or sign in as user.")
           setGoogleLoading(false)
+          isGoogleAuthInProgress.current = false
           return
         }
         // For user role, create account if doesn't exist
@@ -186,6 +202,9 @@ export default function LoginPage() {
           createdAt: new Date().toISOString(),
         })
       }
+      
+      // Mark as redirected to prevent duplicate redirects
+      hasRedirected.current = true
       router.replace(getDashboardByRole(selectedRole))
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string }
@@ -208,7 +227,9 @@ export default function LoginPage() {
       } else {
         setError(err.message || "Google login failed. Please try again.")
       }
+    } finally {
       setGoogleLoading(false)
+      isGoogleAuthInProgress.current = false
     }
   }
 
