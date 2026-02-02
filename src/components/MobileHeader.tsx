@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { Menu } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/Sidebar"
 import { useRouter } from 'next/navigation'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 export function MobileHeader() {
   const [isOpen, setIsOpen] = useState(false)
@@ -27,6 +28,10 @@ export function MobileHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0">
+            <VisuallyHidden>
+              <SheetTitle>Navigation Menu</SheetTitle>
+              <SheetDescription>Main navigation sidebar</SheetDescription>
+            </VisuallyHidden>
             <Sidebar onLinkClick={handleLinkClick} isMobile={true} />
           </SheetContent>
         </Sheet>

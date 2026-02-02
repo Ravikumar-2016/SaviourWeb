@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Navigation, Users, Database, ChevronDown } from 'lucide-react'
 
@@ -29,33 +29,6 @@ const features = [
 
 const FeatureCard = ({ title, description, icon: Icon }: typeof features[0]) => {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Icon className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="text-xl font-semibold ml-4 text-gray-800">{title}</h3>
-          </div>
-          <button
-            className="focus:outline-none text-blue-600"
-            aria-expanded={false}
-            aria-label="Expand feature description"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <motion.div

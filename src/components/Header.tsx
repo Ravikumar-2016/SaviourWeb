@@ -92,7 +92,7 @@ export default function Header() {
               </>
             )}
           </nav>
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)} suppressHydrationWarning>
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>

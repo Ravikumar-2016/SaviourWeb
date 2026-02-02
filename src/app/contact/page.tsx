@@ -40,6 +40,7 @@ const ContactPage: React.FC = () => {
       email: "",
       message: "",
     },
+    mode: "onSubmit", // Only validate on form submission
   })
 
   useEffect(() => {
@@ -98,15 +99,15 @@ const ContactPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
             transition={{ duration: 0.3 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4" // Positioned at the top
+            className="fixed top-4 right-4 left-4 sm:left-auto sm:right-4 sm:top-20 z-50 sm:w-full sm:max-w-sm"
           >
             <Alert
               variant="default"
-              className="bg-green-100 dark:bg-green-800 border-green-500 dark:border-green-600 text-green-700 dark:text-green-200"
+              className="bg-green-50 border-green-200 text-green-800 shadow-lg rounded-xl"
             >
-              <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
-              <AlertTitle className="font-semibold">Message Sent!</AlertTitle>
-              <AlertDescription>Your message has been sent successfully. We&apos;ll get back to you soon.</AlertDescription>
+              <CheckCircleIcon className="h-5 w-5 text-green-600" />
+              <AlertTitle className="font-semibold text-green-800">Message Sent!</AlertTitle>
+              <AlertDescription className="text-green-700">Your message has been sent successfully. We&apos;ll get back to you soon.</AlertDescription>
             </Alert>
           </motion.div>
         )}
