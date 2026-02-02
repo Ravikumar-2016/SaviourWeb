@@ -99,44 +99,62 @@ export default function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
+      
+      // Wait for auth to be ready
       const user = auth.currentUser
-      if (!user) return
+      if (!user) {
+        // Auth not ready yet, wait for auth state
+        const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+          if (firebaseUser) {
+            unsubscribe()
+            await initializeDashboard(firebaseUser.uid)
+          }
+        })
+        return
+      }
+      
+      await initializeDashboard(user.uid)
+    }
 
+    const initializeDashboard = async (uid: string) => {
       // Run these operations in parallel
-      const userProfilePromise = fetchUserProfile(user.uid)
-      const sosStatsPromise = fetchSosStats(user.uid)
+      const userProfilePromise = fetchUserProfile(uid)
+      const sosStatsPromise = fetchSosStats(uid)
       
       // Start location fetch immediately
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const coords = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          }
-          setLocation(coords)
-          
-          // Store location in background, don't wait for it
-          const weatherRef = doc(db, "weather", user.uid)
-          setDoc(weatherRef, {
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-            lastLocationUpdate: new Date(),
-          }).catch(e => console.error("Error saving location:", e))
-          
-          // Fetch weather with the coordinates
-          fetchWeather(coords)
-        },
-        (err) => {
-          console.error("Geolocation error:", err)
-          setLocation(null)
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
-      )
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const coords = {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+            }
+            setLocation(coords)
+            
+            // Store location in background, don't wait for it
+            const weatherRef = doc(db, "weather", uid)
+            setDoc(weatherRef, {
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              lastLocationUpdate: new Date(),
+            }).catch(e => console.error("Error saving location:", e))
+            
+            // Fetch weather with the coordinates
+            fetchWeather(coords)
+          },
+          (err) => {
+            console.error("Geolocation error:", err)
+            setLocation(null)
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        )
+      }
       
       // Wait for these to complete before removing loading state
       await Promise.all([userProfilePromise, sosStatsPromise])
       setLoading(false)
     }
+
     loadData()
   }, [])
 

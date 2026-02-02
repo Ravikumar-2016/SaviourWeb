@@ -177,27 +177,28 @@ Support networks & coordination
 ---
 
 ## 📁 Project Structure
-📦 saviour/
-├── 📂 public/ # Static assets & videos
-├── 📂 src/
-│ ├── 📂 app/ # Next.js App Router
-│ │ ├── 📂 api/ # API routes
-│ │ ├── 📂 auth/ # Authentication pages
-│ │ ├── 📂 dashboard/ # User dashboard
-│ │ ├── 📂 admin-dashboard/ # Admin interface
-│ │ └── ... # Other routes
-│ ├── 📂 components/ # Reusable UI components
-│ │ ├── 📂 Safety/ # Disaster safety guides
-│ │ ├── 📂 ui/ # Base UI components
-│ │ └── ...
-│ ├── 📂 hooks/ # Custom React hooks
-│ ├── 📂 lib/ # Utilities & actions
-│ │ ├── 📂 actions/ # Server actions
-│ │ └── 📂 stores/ # State stores
-│ └── 📂 types/ # TypeScript definitions
-└── ... # Config files
 
-text
+```
+📦 saviour/
+├── 📂 public/              # Static assets & videos
+├── 📂 src/
+│   ├── 📂 app/             # Next.js App Router
+│   │   ├── 📂 api/         # API routes
+│   │   ├── 📂 auth/        # Authentication pages
+│   │   ├── 📂 dashboard/   # User dashboard
+│   │   ├── 📂 admin-dashboard/ # Admin interface
+│   │   └── ...             # Other routes
+│   ├── 📂 components/      # Reusable UI components
+│   │   ├── 📂 Safety/      # Disaster safety guides
+│   │   ├── 📂 ui/          # Base UI components
+│   │   └── ...
+│   ├── 📂 hooks/           # Custom React hooks
+│   ├── 📂 lib/             # Utilities & actions
+│   │   ├── 📂 actions/     # Server actions
+│   │   └── 📂 stores/      # State stores
+│   └── 📂 types/           # TypeScript definitions
+└── ...                     # Config files
+```
 
 ---
 
@@ -205,11 +206,15 @@ text
 
 ### Prerequisites
 
+```
 ✅ Node.js v18+
 ✅ npm or yarn  
 ✅ Firebase account
-Installation
-bash
+```
+
+### Installation
+
+```bash
 # 1️⃣ Clone the repository
 git clone https://github.com/Ravikumar-2016/SaviourWeb.git
 
@@ -225,10 +230,15 @@ cp .env.example .env.local
 
 # 5️⃣ Start development server
 npm run dev
-</details><details> <summary><h3>🔐 Environment Variables</h3></summary> <br/>
-Create a .env.local file with:
+```
 
-env
+<details>
+<summary><h3>🔐 Environment Variables</h3></summary>
+<br/>
+
+Create a `.env.local` file with:
+
+```env
 # 🔑 API Keys
 NEXT_PUBLIC_GEMINI_API_KEY=
 NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=
@@ -257,11 +267,17 @@ SMTP_PASSWORD=
 SMTP_FROM_EMAIL=
 SMTP_FROM_NAME=Saviour_Team
 CONTACT_RECIPIENT_EMAIL=
+```
+
 </details>
-🤝 Contributing
+
+---
+
+## 🤝 Contributing
+
 We welcome contributions! Here's how you can help:
 
-bash
+```bash
 # 1️⃣ Fork the repository
 # 2️⃣ Create your feature branch
 git checkout -b feature/amazing-feature
@@ -273,10 +289,19 @@ git commit -m '✨ Add amazing feature'
 git push origin feature/amazing-feature
 
 # 5️⃣ Open a Pull Request
-<div align="center"><!-- Footer Banner --><img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer" width="100%"/>
-⭐ If this project helped you, consider giving it a star!
+```
 
+---
 
-Built with ❤️ by the Saviour Team
+<div align="center">
 
-<br/> </div>
+<!-- Footer Banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer" width="100%"/>
+
+**⭐ If this project helped you, consider giving it a star!**
+
+<br/>
+
+Built with ❤️ by the **Saviour Team**
+
+</div>
