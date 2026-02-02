@@ -135,16 +135,16 @@ const ContactPage: React.FC = () => {
                       saviourglobalinfo@gmail.com
                     </motion.a>
                     <motion.a
-                      href="tel:+919347475541"
+                      href="tel:+9193xxxxxxxx"
                       className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary transition-colors duration-200"
                       whileHover={{ x: 5 }}
                     >
                       <PhoneIcon className="h-5 w-5 mr-2" />
-                      +91 93474 75541
+                      +91 93xxx xxxxx
                     </motion.a>
                     <motion.p className="flex items-center text-gray-600 dark:text-gray-300" whileHover={{ x: 5 }}>
                       <MapPinIcon className="h-5 w-5 mr-2" />
-                      Hyderabad, India
+                      IIITDM Jabalpur, India
                     </motion.p>
                   </div>
                 </div>

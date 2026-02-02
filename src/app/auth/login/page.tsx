@@ -16,17 +16,13 @@ import {
   onAuthStateChanged 
 } from "firebase/auth"
 import { doc, getDoc, setDoc } from "firebase/firestore"
-import { Loader2, User, Users, Shield, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { Loader2, Shield, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { AuthLoading } from "@/components/ui/auth-loading"
-
-const USER_ROLES = ["user", "admin"] as const
-type UserRole = (typeof USER_ROLES)[number]
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<UserRole>("user")
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +31,25 @@ export default function LoginPage() {
   const hasRedirected = useRef(false)
   const router = useRouter()
 
+  // Helper: Check user role from Firebase and redirect accordingly
+  const checkRoleAndRedirect = async (uid: string): Promise<boolean> => {
+    // Check admin collection first
+    const adminDoc = await getDoc(doc(db, "admins", uid))
+    if (adminDoc.exists()) {
+      hasRedirected.current = true
+      router.replace("/admin-dashboard")
+      return true
+    }
+    // Check users collection
+    const userDoc = await getDoc(doc(db, "users", uid))
+    if (userDoc.exists()) {
+      hasRedirected.current = true
+      router.replace("/dashboard")
+      return true
+    }
+    return false
+  }
+
   // Check for redirect result (for mobile/browsers that block popups)
   useEffect(() => {
     const checkRedirectResult = async () => {
@@ -42,20 +57,12 @@ export default function LoginPage() {
         const result = await getRedirectResult(auth)
         if (result?.user && !hasRedirected.current) {
           isGoogleAuthInProgress.current = true
-          // User signed in via redirect
-          const userDoc = await getDoc(doc(db, "users", result.user.uid))
-          if (userDoc.exists()) {
-            hasRedirected.current = true
-            router.replace("/dashboard")
-            return
-          }
-          const adminDoc = await getDoc(doc(db, "admins", result.user.uid))
-          if (adminDoc.exists()) {
-            hasRedirected.current = true
-            router.replace("/admin-dashboard")
-            return
-          }
-          // If no existing account, create a user account
+          
+          // Check if user exists and redirect to appropriate dashboard
+          const redirected = await checkRoleAndRedirect(result.user.uid)
+          if (redirected) return
+          
+          // If no existing account, create as regular user
           await setDoc(doc(db, "users", result.user.uid), {
             uid: result.user.uid,
             email: result.user.email,
@@ -86,38 +93,15 @@ export default function LoginPage() {
       }
       
       if (firebaseUser && !hasRedirected.current) {
-        // Check which collection the user belongs to
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
-        if (userDoc.exists()) {
-          hasRedirected.current = true
-          router.replace("/dashboard")
-          return
-        }
-        const adminDoc = await getDoc(doc(db, "admins", firebaseUser.uid))
-        if (adminDoc.exists()) {
-          hasRedirected.current = true
-          router.replace("/admin-dashboard")
-          return
-        }
+        // Auto-detect role from Firebase and redirect
+        await checkRoleAndRedirect(firebaseUser.uid)
       }
       setCheckingAuth(false)
     })
     return () => unsubscribe()
   }, [router])
 
-  // Helper to get collection name by role
-  const getCollectionByRole = (role: UserRole) => {
-    if (role === "user") return "users"
-    return "admins"
-  }
-
-  // Helper to get dashboard route by role
-  const getDashboardByRole = (role: UserRole) => {
-    if (role === "admin") return "/admin-dashboard"
-    return "/dashboard"
-  }
-
-  // Email/password login
+  // Email/password login - auto-detect role from Firebase
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -128,14 +112,13 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const collectionName = getCollectionByRole(selectedRole)
-      const userDoc = await getDoc(doc(db, collectionName, userCredential.user.uid))
-      if (!userDoc.exists()) {
-        setError(`No ${selectedRole} account found for this email. Please check your role selection.`)
+      
+      // Auto-detect role from Firebase and redirect
+      const redirected = await checkRoleAndRedirect(userCredential.user.uid)
+      if (!redirected) {
+        setError("Account not found. Please sign up first.")
         setLoading(false)
-        return
       }
-      router.replace(getDashboardByRole(selectedRole))
     } catch (error: unknown) {
       const err = error as { code?: string }
       let message = "Login failed. Please try again."
@@ -146,7 +129,6 @@ export default function LoginPage() {
       if (err.code === "auth/too-many-requests")
         message = "Too many attempts. Please try again later."
       setError(message)
-    } finally {
       setLoading(false)
     }
   }
@@ -160,7 +142,7 @@ export default function LoginPage() {
     return isMobile || isSafari
   }
 
-  // Google login with fallback to redirect
+  // Google login with fallback to redirect - auto-detect role from Firebase
   const handleGoogleLogin = async () => {
     setError(null)
     setGoogleLoading(true)
@@ -179,33 +161,26 @@ export default function LoginPage() {
       }
       
       const result = await signInWithPopup(auth, provider)
-      const collectionName = getCollectionByRole(selectedRole)
-      const userDoc = await getDoc(doc(db, collectionName, result.user.uid))
       
-      if (!userDoc.exists()) {
-        // If admin role selected but no admin account exists
-        if (selectedRole === "admin") {
-          setError("No admin account found. Please contact administrator or sign in as user.")
-          setGoogleLoading(false)
-          isGoogleAuthInProgress.current = false
-          return
-        }
-        // For user role, create account if doesn't exist
-        await setDoc(doc(db, "users", result.user.uid), {
-          uid: result.user.uid,
-          email: result.user.email,
-          fullName: result.user.displayName || "",
-          city: "",
-          photoURL: result.user.photoURL || "",
-          role: "user",
-          provider: "google",
-          createdAt: new Date().toISOString(),
-        })
-      }
+      // Check if user exists and redirect to appropriate dashboard
+      const redirected = await checkRoleAndRedirect(result.user.uid)
+      if (redirected) return
       
-      // Mark as redirected to prevent duplicate redirects
+      // If no existing account, create as regular user
+      await setDoc(doc(db, "users", result.user.uid), {
+        uid: result.user.uid,
+        email: result.user.email,
+        fullName: result.user.displayName || "",
+        city: "",
+        photoURL: result.user.photoURL || "",
+        role: "user",
+        provider: "google",
+        createdAt: new Date().toISOString(),
+      })
+      
+      // Redirect new users to user dashboard
       hasRedirected.current = true
-      router.replace(getDashboardByRole(selectedRole))
+      router.replace("/dashboard")
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string }
       console.error("Google login error:", err.code, err.message)
@@ -253,26 +228,6 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="mt-4">
           <form className="space-y-4" onSubmit={handleLogin}>
-            {/* Role Selection */}
-            <div className="flex justify-center gap-2 p-1 bg-gray-100 rounded-lg">
-              {USER_ROLES.map((role) => (
-                <Button
-                  key={role}
-                  type="button"
-                  variant={selectedRole === role ? "default" : "ghost"}
-                  className={`flex-1 items-center gap-2 transition-all ${
-                    selectedRole === role
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "text-gray-600 hover:text-indigo-600"
-                  }`}
-                  onClick={() => setSelectedRole(role)}
-                >
-                  {role === "user" ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </Button>
-              ))}
-            </div>
-
             {/* Email Input */}
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -332,7 +287,7 @@ export default function LoginPage() {
                   Signing in...
                 </span>
               ) : (
-                `Sign in as ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}`
+                "Sign In"
               )}
             </Button>
           </form>
