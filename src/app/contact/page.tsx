@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertTriangle, Cloud, MapPin, Users, Shield } from "lucide-react"
 
 // Form validation schema
 const formSchema = z.object({
@@ -87,10 +88,17 @@ const ContactPage: React.FC = () => {
     }
   }
 
+  const features = [
+    { icon: AlertTriangle, text: "SOS Emergency Alerts", color: "text-red-500" },
+    { icon: Cloud, text: "Weather Monitoring", color: "text-blue-500" },
+    { icon: MapPin, text: "Emergency Navigation", color: "text-green-500" },
+    { icon: Users, text: "Community Support", color: "text-purple-500" },
+  ]
+
   return (
     <section
       id="contact"
-      className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative"
+      className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative min-h-screen"
     >
       <div className="container mx-auto px-4">
         {showSuccessAlertCard && (
@@ -112,10 +120,36 @@ const ContactPage: React.FC = () => {
           </motion.div>
         )}
 
+        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+            <Shield className="w-8 h-8 text-blue-600" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Contact Us</h1>
+          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Have questions about SAVIOUR&apos;s emergency management features? We&apos;re here to help. Reach out to us and we&apos;ll respond as soon as possible.
+          </p>
+          
+          {/* Feature Pills */}
+          <div className="flex flex-wrap justify-center gap-3 mt-6">
+            {features.map((feature, index) => (
+              <div key={index} className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm border border-gray-100 dark:border-gray-700">
+                <feature.icon className={`w-4 h-4 ${feature.color}`} />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{feature.text}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="max-w-4xl mx-auto"
         >
           <Card className="overflow-hidden shadow-lg">
@@ -147,6 +181,18 @@ const ContactPage: React.FC = () => {
                       <MapPinIcon className="h-5 w-5 mr-2" />
                       IIITDM Jabalpur, India
                     </motion.p>
+                  </div>
+                  
+                  {/* Additional Info */}
+                  <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">What can we help with?</h4>
+                    <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                      <li>• Questions about SOS emergency alerts</li>
+                      <li>• Weather monitoring features</li>
+                      <li>• Emergency navigation support</li>
+                      <li>• Community features & feedback</li>
+                      <li>• Technical support & bug reports</li>
+                    </ul>
                   </div>
                 </div>
                 <div>
