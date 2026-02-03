@@ -8,7 +8,7 @@ export const sidebarItems = [
   { name: 'Resources', icon: Database, href: '/dashboard/resources' },
   { name: 'Weather', icon: CloudSun, href: '/dashboard/weather' },
   { name: 'Community', icon: Users, href: '/dashboard/community' },
-  { name: 'Emergency', icon: PhoneCall, href: '/dashboard/emergency' },
+  { name: 'Emergency Help', icon: PhoneCall, href: '/dashboard/emergency' },
   { name: 'Navigation', icon: Navigation, href: '/dashboard/navigation' },
   { name: 'Safety', icon: Shield, href: '/dashboard/safety' },
 ]
