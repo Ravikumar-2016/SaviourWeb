@@ -76,10 +76,10 @@ export default function Dashboard() {
     const fetchWeather = async () => {
       setWeatherLoading(true)
       setWeatherError(null)
-      const apiKey = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY || ""
       try {
+        // Use internal API route instead of direct external API call
         const weatherResp = await axios.get<WeatherData>(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${coords.latitude}&lon=${coords.longitude}&units=metric&appid=${apiKey}`
+          `/api/weather-widget?lat=${coords.latitude}&lon=${coords.longitude}`
         )
         setWeather(weatherResp.data)
       } catch (err) {

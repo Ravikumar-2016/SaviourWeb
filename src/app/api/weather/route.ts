@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
+import { safeError, isProduction } from "@/lib/env"
 
-// API keys - server-side only for security
-const WEATHER_API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY
-const OPENWEATHER_API_KEY = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY
+// API keys - server-side only (no NEXT_PUBLIC_ prefix for security)
+const WEATHER_API_KEY = process.env.WEATHER_API_KEY
+const OPENWEATHER_API_KEY = process.env.OPENWEATHERMAP_API_KEY
 
 // Types for WeatherAPI.com
 interface WeatherCondition {
@@ -152,7 +153,13 @@ interface OpenWeatherMapForecast {
 
 // Unified response type
 interface UnifiedWeatherResponse {
-  source: "weatherapi" | "openweathermap" | "mock"
+  source: "weatherapi" | "openweathermap" | "combined" | "mock"
+  forecastInfo: {
+    totalDays: number
+    weatherApiDays: number
+    openWeatherDays: number
+    message: string
+  }
   location: {
     name: string
     region?: string
@@ -202,6 +209,7 @@ interface UnifiedWeatherResponse {
     uv?: number
     sunrise?: string
     sunset?: string
+    source: "weatherapi" | "openweathermap" | "mock"
     weather: {
       main: string
       description: string
@@ -226,12 +234,13 @@ function formatTimeFromTimestamp(timestamp: number, timezone: number): string {
   return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`
 }
 
-// Fetch from WeatherAPI.com (primary)
+// Fetch from WeatherAPI.com (primary - 3 days free tier)
 async function fetchWeatherAPI(location: string): Promise<UnifiedWeatherResponse | null> {
   if (!WEATHER_API_KEY) return null
 
   try {
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(location)}&days=7&aqi=no&alerts=no`
+    // WeatherAPI free tier only supports 3 days forecast
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(location)}&days=3&aqi=no&alerts=no`
     const response = await fetch(url, { next: { revalidate: 300 } }) // Cache for 5 minutes
 
     if (!response.ok) {
@@ -242,10 +251,17 @@ async function fetchWeatherAPI(location: string): Promise<UnifiedWeatherResponse
     const data: WeatherAPIResponse = await response.json()
     const now = new Date()
     const currentHour = now.getHours()
+    const forecastDays = data.forecast.forecastday.length
 
     // Transform to unified format
     return {
       source: "weatherapi",
+      forecastInfo: {
+        totalDays: forecastDays,
+        weatherApiDays: forecastDays,
+        openWeatherDays: 0,
+        message: `${forecastDays}-day forecast from WeatherAPI`
+      },
       location: {
         name: data.location.name,
         region: data.location.region,
@@ -302,6 +318,7 @@ async function fetchWeatherAPI(location: string): Promise<UnifiedWeatherResponse
         uv: day.day.uv,
         sunrise: day.astro.sunrise,
         sunset: day.astro.sunset,
+        source: "weatherapi" as const,
         weather: {
           main: day.day.condition.text,
           description: day.day.condition.text,
@@ -315,7 +332,7 @@ async function fetchWeatherAPI(location: string): Promise<UnifiedWeatherResponse
   }
 }
 
-// Fetch from OpenWeatherMap (fallback)
+// Fetch from OpenWeatherMap (fallback - 5 days free tier)
 async function fetchOpenWeatherMap(location: string): Promise<UnifiedWeatherResponse | null> {
   if (!OPENWEATHER_API_KEY) return null
 
@@ -331,7 +348,7 @@ async function fetchOpenWeatherMap(location: string): Promise<UnifiedWeatherResp
 
     const currentData: OpenWeatherMapCurrent = await currentResponse.json()
 
-    // Get forecast
+    // Get forecast (5-day / 3-hour forecast)
     const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${OPENWEATHER_API_KEY}&units=metric`
     const forecastResponse = await fetch(forecastUrl, { next: { revalidate: 300 } })
 
@@ -342,7 +359,7 @@ async function fetchOpenWeatherMap(location: string): Promise<UnifiedWeatherResp
 
     const forecastData: OpenWeatherMapForecast = await forecastResponse.json()
 
-    // Process daily data from 3-hour forecasts
+    // Process daily data from 3-hour forecasts (max 5 days)
     const dailyMap = new Map<string, { temps: number[]; item: OpenWeatherMapForecastItem }>()
     forecastData.list.forEach((item) => {
       const date = new Date(item.dt * 1000).toDateString()
@@ -352,13 +369,15 @@ async function fetchOpenWeatherMap(location: string): Promise<UnifiedWeatherResp
       dailyMap.get(date)!.temps.push(item.main.temp)
     })
 
-    const daily = Array.from(dailyMap.entries()).slice(0, 7).map(([, data]) => ({
+    // OpenWeatherMap free tier provides 5-day forecast
+    const daily = Array.from(dailyMap.entries()).slice(0, 5).map(([, data]) => ({
       dt: data.item.dt,
       temp_min: Math.min(...data.temps),
       temp_max: Math.max(...data.temps),
       humidity: data.item.main.humidity,
       wind_speed: data.item.wind.speed,
       pop: data.item.pop,
+      source: "openweathermap" as const,
       weather: {
         main: data.item.weather[0].main,
         description: data.item.weather[0].description,
@@ -368,6 +387,12 @@ async function fetchOpenWeatherMap(location: string): Promise<UnifiedWeatherResp
 
     return {
       source: "openweathermap",
+      forecastInfo: {
+        totalDays: daily.length,
+        weatherApiDays: 0,
+        openWeatherDays: daily.length,
+        message: `${daily.length}-day forecast from OpenWeatherMap`
+      },
       location: {
         name: currentData.name,
         country: currentData.sys.country,
@@ -419,6 +444,12 @@ function getMockWeatherData(cityName: string): UnifiedWeatherResponse {
 
   return {
     source: "mock",
+    forecastInfo: {
+      totalDays: 5,
+      weatherApiDays: 0,
+      openWeatherDays: 0,
+      message: "Demo data - Configure API keys for real weather"
+    },
     location: {
       name: cityName,
       country: "Demo",
@@ -455,7 +486,7 @@ function getMockWeatherData(cityName: string): UnifiedWeatherResponse {
         icon: `https://openweathermap.org/img/wn/${i >= 6 && i < 18 ? "01d" : "01n"}@2x.png`,
       },
     })),
-    daily: Array.from({ length: 7 }, (_, i) => ({
+    daily: Array.from({ length: 5 }, (_, i) => ({
       dt: Math.floor(now.getTime() / 1000) + i * 86400,
       temp_min: 18 + Math.random() * 4,
       temp_max: 28 + Math.random() * 5,
@@ -465,12 +496,57 @@ function getMockWeatherData(cityName: string): UnifiedWeatherResponse {
       uv: 5 + Math.random() * 3,
       sunrise: "6:30 AM",
       sunset: "6:45 PM",
+      source: "mock" as const,
       weather: {
         main: ["Clear", "Clouds", "Rain"][Math.floor(Math.random() * 3)],
         description: "Variable conditions",
         icon: `https://openweathermap.org/img/wn/02d@2x.png`,
       },
     })),
+  }
+}
+
+// Fetch extended forecast from OpenWeatherMap to extend WeatherAPI data
+async function fetchOpenWeatherMapExtended(location: string, startFromDay: number): Promise<UnifiedWeatherResponse["daily"] | null> {
+  if (!OPENWEATHER_API_KEY) return null
+
+  try {
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    const forecastResponse = await fetch(forecastUrl, { next: { revalidate: 300 } })
+
+    if (!forecastResponse.ok) return null
+
+    const forecastData: OpenWeatherMapForecast = await forecastResponse.json()
+
+    // Process daily data from 3-hour forecasts
+    const dailyMap = new Map<string, { temps: number[]; item: OpenWeatherMapForecastItem }>()
+    forecastData.list.forEach((item) => {
+      const date = new Date(item.dt * 1000).toDateString()
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { temps: [], item })
+      }
+      dailyMap.get(date)!.temps.push(item.main.temp)
+    })
+
+    // Skip first N days (already covered by WeatherAPI), take remaining days
+    return Array.from(dailyMap.entries())
+      .slice(startFromDay, 5) // OpenWeatherMap provides up to 5 days
+      .map(([, data]) => ({
+        dt: data.item.dt,
+        temp_min: Math.min(...data.temps),
+        temp_max: Math.max(...data.temps),
+        humidity: data.item.main.humidity,
+        wind_speed: data.item.wind.speed,
+        pop: data.item.pop,
+        source: "openweathermap" as const,
+        weather: {
+          main: data.item.weather[0].main,
+          description: data.item.weather[0].description,
+          icon: `https://openweathermap.org/img/wn/${data.item.weather[0].icon}@2x.png`,
+        },
+      }))
+  } catch {
+    return null
   }
 }
 
@@ -481,6 +557,7 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get("state")
     const country = searchParams.get("country")
 
+    // Input validation
     if (!city) {
       return NextResponse.json(
         { error: "City is required" },
@@ -488,43 +565,63 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Sanitize input - only allow alphanumeric, spaces, and common punctuation
+    const sanitizedCity = city.replace(/[^a-zA-Z0-9\s,.-]/g, '').substring(0, 100)
+    const sanitizedState = state?.replace(/[^a-zA-Z0-9\s,.-]/g, '').substring(0, 100)
+    const sanitizedCountry = country?.replace(/[^a-zA-Z0-9\s,.-]/g, '').substring(0, 100)
+
     // Build location query
-    const locationParts = [city]
-    if (state) locationParts.push(state)
-    if (country) locationParts.push(country)
+    const locationParts = [sanitizedCity]
+    if (sanitizedState) locationParts.push(sanitizedState)
+    if (sanitizedCountry) locationParts.push(sanitizedCountry)
     const location = locationParts.join(", ")
 
-    console.log("Fetching weather for:", location)
-
-    // Try WeatherAPI first (primary source)
-    let weatherData = await fetchWeatherAPI(location)
-
-    if (weatherData) {
-      console.log("Weather data from WeatherAPI")
-      return NextResponse.json(weatherData)
+    if (!isProduction()) {
+      console.log("Fetching weather for:", location)
     }
 
-    // Fallback to OpenWeatherMap
-    console.log("Falling back to OpenWeatherMap")
-    weatherData = await fetchOpenWeatherMap(location)
+    // Try WeatherAPI first (primary source - 3 days)
+    const weatherApiData = await fetchWeatherAPI(location)
 
-    if (weatherData) {
-      console.log("Weather data from OpenWeatherMap")
-      return NextResponse.json(weatherData)
+    if (weatherApiData) {
+      // WeatherAPI succeeded - try to extend with OpenWeatherMap for days 4-5
+      const extendedDays = await fetchOpenWeatherMapExtended(location, weatherApiData.daily.length)
+      
+      if (extendedDays && extendedDays.length > 0) {
+        // Combine data: WeatherAPI (days 1-3) + OpenWeatherMap (days 4-5)
+        const combinedDaily = [...weatherApiData.daily, ...extendedDays]
+        const weatherApiDays = weatherApiData.daily.length
+        const openWeatherDays = extendedDays.length
+        
+        return NextResponse.json({
+          ...weatherApiData,
+          source: "combined" as const,
+          forecastInfo: {
+            totalDays: combinedDaily.length,
+            weatherApiDays,
+            openWeatherDays,
+            message: `${combinedDaily.length}-day forecast: Days 1-${weatherApiDays} from WeatherAPI, Days ${weatherApiDays + 1}-${combinedDaily.length} from OpenWeatherMap`
+          },
+          daily: combinedDaily
+        })
+      }
+      
+      // Return WeatherAPI only data
+      return NextResponse.json(weatherApiData)
     }
 
-    // If both APIs fail, check if keys are configured
-    if (!WEATHER_API_KEY && !OPENWEATHER_API_KEY) {
-      console.log("No API keys configured, returning mock data")
-      return NextResponse.json(getMockWeatherData(city))
+    // Fallback to OpenWeatherMap only (5 days)
+    const openWeatherData = await fetchOpenWeatherMap(location)
+
+    if (openWeatherData) {
+      return NextResponse.json(openWeatherData)
     }
 
-    // Both APIs failed
-    console.log("Both APIs failed, returning mock data")
-    return NextResponse.json(getMockWeatherData(city))
+    // If both APIs fail, return mock data (don't expose API key status)
+    return NextResponse.json(getMockWeatherData(sanitizedCity))
 
   } catch (error) {
-    console.error("Weather API error:", error)
+    safeError("Weather API error", error)
     const city = request.nextUrl.searchParams.get("city") || "Unknown"
     return NextResponse.json(getMockWeatherData(city))
   }

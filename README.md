@@ -93,10 +93,11 @@
 <td width="50%">
 
 ### 🌤️ Weather Intelligence
-- **Dual API System** - WeatherAPI.com (primary) + OpenWeatherMap (fallback)
-- **Severe Alerts** - Storm & disaster warnings
-- **Forecasting** - 7-day weather predictions + hourly forecasts
+- **Dual API System** - WeatherAPI.com (3-day, primary) + OpenWeatherMap (5-day, fallback/extended)
+- **Combined Forecasts** - Up to 5-day forecast by combining both APIs
+- **Hourly Forecasts** - 24-hour detailed predictions
 - **Profile-based Location** - Uses city from user profile
+- **Transparent Sources** - Shows which API provided each day's forecast
 
 </td>
 <td width="50%">
@@ -262,11 +263,15 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef123456
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 
 # ═══════════════════════════════════════════════════════════
-# 🌐 API KEYS (Required for full functionality)
+# 🌐 API KEYS (Server-side only - secure)
 # ═══════════════════════════════════════════════════════════
-NEXT_PUBLIC_WEATHER_API_KEY=your_weatherapi_key        # Primary weather source
-NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=your_openweathermap_key  # Fallback weather source
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
+WEATHER_API_KEY=your_weatherapi_key        # Primary weather source
+OPENWEATHERMAP_API_KEY=your_openweathermap_key  # Fallback weather source
+GEMINI_API_KEY=your_gemini_api_key
+
+# ═══════════════════════════════════════════════════════════
+# 🗺️ GOOGLE MAPS (Client-side - restrict in Google Console)
+# ═══════════════════════════════════════════════════════════
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 
 # ═══════════════════════════════════════════════════════════

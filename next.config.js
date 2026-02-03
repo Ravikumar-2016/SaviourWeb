@@ -17,10 +17,8 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
-  env: {
-    GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
-    OPENWEATHERMAP_API_KEY: process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY,
-  },
+  // Server-side only environment variables - not exposed to browser
+  // Access these via process.env in API routes only
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Don't resolve 'fs', 'net', etc. on the client to prevent this error

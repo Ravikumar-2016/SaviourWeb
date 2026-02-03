@@ -22,7 +22,13 @@ import {
 
 // Weather data interface matching API response
 interface WeatherData {
-  source: "weatherapi" | "openweathermap" | "mock"
+  source: "weatherapi" | "openweathermap" | "combined" | "mock"
+  forecastInfo: {
+    totalDays: number
+    weatherApiDays: number
+    openWeatherDays: number
+    message: string
+  }
   location: {
     name: string
     region?: string
@@ -72,6 +78,7 @@ interface WeatherData {
     uv?: number
     sunrise?: string
     sunset?: string
+    source?: "weatherapi" | "openweathermap" | "mock"
     weather: {
       main: string
       description: string
@@ -275,12 +282,11 @@ export default function WeatherPage() {
           <Alert variant={weatherData.source === "mock" ? "default" : "default"} className="border-blue-200 bg-blue-50/50 dark:bg-blue-900/20">
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <AlertTitle className="text-blue-800 dark:text-blue-300">
-              {weatherData.source === "mock" ? "Demo Mode" : "Alternative Data Source"}
+              {weatherData.source === "mock" ? "Demo Mode" : 
+               weatherData.source === "combined" ? "Combined Data Sources" : "Alternative Data Source"}
             </AlertTitle>
             <AlertDescription className="text-blue-700 dark:text-blue-400">
-              {weatherData.source === "mock" 
-                ? "Showing demo weather data. Configure API keys for real data."
-                : "Using backup weather service. Some features may be limited."}
+              {weatherData.forecastInfo.message}
             </AlertDescription>
           </Alert>
         )}
@@ -298,7 +304,10 @@ export default function WeatherPage() {
 
         {/* Daily Forecast */}
         {weatherData.daily.length > 0 && (
-          <DailyForecastCard data={weatherData.daily} />
+          <DailyForecastCard 
+            data={weatherData.daily}
+            forecastInfo={weatherData.forecastInfo}
+          />
         )}
 
         {/* Footer info */}
@@ -309,8 +318,7 @@ export default function WeatherPage() {
             {weatherData.location.country && `, ${weatherData.location.country}`}
           </p>
           <p className="mt-1 text-xs">
-            Data source: {weatherData.source === "weatherapi" ? "WeatherAPI" : 
-                         weatherData.source === "openweathermap" ? "OpenWeatherMap" : "Demo"}
+            {weatherData.forecastInfo.message}
           </p>
         </div>
       </div>
