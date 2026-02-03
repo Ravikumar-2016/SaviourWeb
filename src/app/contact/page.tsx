@@ -141,7 +141,7 @@ const ContactPage: React.FC = () => {
                       whileHover={{ x: 5 }}
                     >
                       <PhoneIcon className="h-5 w-5 mr-2" />
-                      +91 93xxx xxxxx
+                      +91 93xxxxxxxx
                     </motion.a>
                     <motion.p className="flex items-center text-gray-600 dark:text-gray-300" whileHover={{ x: 5 }}>
                       <MapPinIcon className="h-5 w-5 mr-2" />
