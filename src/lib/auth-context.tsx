@@ -6,15 +6,12 @@ import { onAuthStateChanged, signOut as firebaseSignOut, type User } from "fireb
 import { doc, getDoc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 
-export type UserRole = "user" | "admin"
-
 export interface UserProfile {
   uid: string
   email: string | null
   fullName: string
   city?: string
   photoURL?: string
-  role: UserRole
   provider?: string
 }
 
@@ -37,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = useCallback(async (firebaseUser: User): Promise<UserProfile | null> => {
     try {
-      // Try users collection first
+      // Get user from users collection
       const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
       if (userDoc.exists()) {
         const data = userDoc.data()
@@ -47,22 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           fullName: data.fullName || firebaseUser.displayName || "User",
           city: data.city || "",
           photoURL: data.photoURL || firebaseUser.photoURL || "",
-          role: "user",
-          provider: data.provider || "email",
-        }
-      }
-
-      // Try admins collection
-      const adminDoc = await getDoc(doc(db, "admins", firebaseUser.uid))
-      if (adminDoc.exists()) {
-        const data = adminDoc.data()
-        return {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          fullName: data.fullName || firebaseUser.displayName || "Admin",
-          city: data.city || "",
-          photoURL: data.photoURL || firebaseUser.photoURL || "",
-          role: "admin",
           provider: data.provider || "email",
         }
       }
@@ -128,7 +109,7 @@ export function useAuth() {
 }
 
 // Hook for protected routes
-export function useRequireAuth(requiredRole?: UserRole) {
+export function useRequireAuth() {
   const { user, profile, loading, initialized } = useAuth()
   const router = useRouter()
 
@@ -139,16 +120,7 @@ export function useRequireAuth(requiredRole?: UserRole) {
       router.replace("/auth/login")
       return
     }
+  }, [user, profile, loading, initialized, router])
 
-    if (requiredRole && profile?.role !== requiredRole) {
-      // Redirect to appropriate dashboard
-      if (profile?.role === "admin") {
-        router.replace("/admin-dashboard")
-      } else {
-        router.replace("/dashboard")
-      }
-    }
-  }, [user, profile, loading, initialized, requiredRole, router])
-
-  return { user, profile, loading, initialized, isAuthorized: !requiredRole || profile?.role === requiredRole }
+  return { user, profile, loading, initialized, isAuthorized: !!user }
 }

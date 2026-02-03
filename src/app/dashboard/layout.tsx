@@ -20,15 +20,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Verify user exists in users collection (not admin)
+      // Verify user exists in users collection
       const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
       if (!userDoc.exists()) {
-        // Check if they're an admin trying to access user dashboard
-        const adminDoc = await getDoc(doc(db, "admins", firebaseUser.uid))
-        if (adminDoc.exists()) {
-          router.replace("/admin-dashboard")
-          return
-        }
         // No profile found, send to login
         router.replace("/auth/login")
         return
@@ -41,7 +35,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [router])
 
   if (authLoading) {
-    return <DashboardSkeleton type="user" />
+    return <DashboardSkeleton />
   }
 
   if (!user) {

@@ -46,9 +46,6 @@ export default function Header() {
             <Link href="/contact" className="hover:text-blue-600 transition-colors hover:scale-105 transform">
               Contact
             </Link>
-            <Link href="/donate" className="hover:text-blue-600 transition-colors hover:scale-105 transform">
-              Donate
-            </Link>
             {!user && (
               <>
                 <Button
@@ -77,7 +74,7 @@ export default function Header() {
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  <Link href={user?.email === "saviourglobalinfo@gmail.com" ? "/admin-dashboard" : "/dashboard"}>
+                  <Link href="/dashboard">
                     Dashboard
                   </Link>
                 </Button>
@@ -109,9 +106,6 @@ export default function Header() {
             <Link href="/contact" className="hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
               Contact
             </Link>
-            <Link href="/donate" className="hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
-              Donate
-            </Link>
             {!user && (
               <>
                 <Button
@@ -143,7 +137,7 @@ export default function Header() {
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Link href={user?.email === "saviourglobalinfo@gmail.com" ? "/admin-dashboard" : "/dashboard"}>
+                  <Link href="/dashboard">
                     Dashboard
                   </Link>
                 </Button>

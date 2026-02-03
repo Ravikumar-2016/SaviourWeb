@@ -33,14 +33,13 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       
-      // Always create user with "user" role
+      // Create user profile
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: user.email,
         fullName: user.displayName || "",
         city: "",
         photoURL: user.photoURL || "",
-        role: "user",
         provider: "google",
         createdAt: new Date().toISOString(),
       })
@@ -92,14 +91,13 @@ export default function SignupPage() {
       const result = await createUserWithEmailAndPassword(auth, email, password)
       await updateProfile(result.user, { displayName: name })
       
-      // Always create user with "user" role
+      // Create user profile
       await setDoc(doc(db, "users", result.user.uid), {
         uid: result.user.uid,
         email,
         fullName: name,
         city,
         photoURL: "",
-        role: "user",
         provider: "email",
         createdAt: new Date().toISOString(),
       })

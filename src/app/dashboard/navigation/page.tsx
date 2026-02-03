@@ -123,19 +123,9 @@ export default function NavigationPage() {
     if (isSOSCreator(sos)) return
     try {
       // Fetch user profile
-      let userDoc = await getDoc(doc(db, "users", user.uid))
-      let userData = userDoc.exists() ? userDoc.data() : null
-      let responderRole = "user"
-      if (!userData) {
-        userDoc = await getDoc(doc(db, "employees", user.uid))
-        userData = userDoc.exists() ? userDoc.data() : null
-        responderRole = "employee"
-      }
-      if (!userData) {
-        userDoc = await getDoc(doc(db, "admins", user.uid))
-        userData = userDoc.exists() ? userDoc.data() : null
-        responderRole = "admin"
-      }
+      const userDoc = await getDoc(doc(db, "users", user.uid))
+      const userData = userDoc.exists() ? userDoc.data() : null
+      const responderRole = "user"
       const responderName =
         userData?.fullName || userData?.name || user.displayName || user.email || "Unknown"
       await updateDoc(doc(db, "sos_requests", sos.id), {
@@ -149,7 +139,7 @@ export default function NavigationPage() {
         userId: sos.userId,
         sosId: sos.id,
         type: "sos_responded",
-        message: `Your SOS has been accepted and responded to. Help is on the way from ${responderName} (${responderRole}).`,
+        message: `Your SOS has been accepted and responded to. Help is on the way from ${responderName}.`,
         responderId: user.uid,
         responderName,
         responderRole,

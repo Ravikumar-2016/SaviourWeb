@@ -32,11 +32,7 @@ export function AuthLoading({ message = "Authenticating...", fullScreen = true, 
   )
 }
 
-interface DashboardSkeletonProps {
-  type?: "user" | "admin"
-}
-
-export function DashboardSkeleton({ }: DashboardSkeletonProps) {
+export function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header skeleton */}

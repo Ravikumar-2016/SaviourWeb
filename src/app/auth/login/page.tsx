@@ -19,15 +19,9 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  // Auto-detect role and redirect accordingly
-  const checkRoleAndRedirect = async (uid: string): Promise<boolean> => {
+  // Redirect to dashboard after successful login
+  const checkUserAndRedirect = async (uid: string): Promise<boolean> => {
     try {
-      // Check admin collection first
-      const adminDoc = await getDoc(doc(db, "admins", uid))
-      if (adminDoc.exists()) {
-        router.replace("/admin-dashboard")
-        return true
-      }
       // Check users collection
       const userDoc = await getDoc(doc(db, "users", uid))
       if (userDoc.exists()) {
@@ -36,7 +30,7 @@ export default function LoginPage() {
       }
       return false
     } catch (err) {
-      console.error("Error checking role:", err)
+      console.error("Error checking user:", err)
       return false
     }
   }
@@ -54,7 +48,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const redirected = await checkRoleAndRedirect(userCredential.user.uid)
+      const redirected = await checkUserAndRedirect(userCredential.user.uid)
       
       if (!redirected) {
         setError("Account not found. Please sign up first.")
@@ -95,8 +89,8 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider()
       const result = await signInWithPopup(auth, provider)
       
-      // Check if user exists in admins or users collection
-      const redirected = await checkRoleAndRedirect(result.user.uid)
+      // Check if user exists in users collection
+      const redirected = await checkUserAndRedirect(result.user.uid)
       
       if (!redirected) {
         // New user - create account in users collection
@@ -106,7 +100,6 @@ export default function LoginPage() {
           fullName: result.user.displayName || "",
           city: "",
           photoURL: result.user.photoURL || "",
-          role: "user",
           provider: "google",
           createdAt: new Date().toISOString(),
         })

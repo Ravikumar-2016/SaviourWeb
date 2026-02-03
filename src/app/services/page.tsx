@@ -35,7 +35,7 @@ const services = [
   },
   {
     title: "Data Analytics and Reporting",
-    description: "Gain insights from historical and real-time data to improve disaster response strategies and resource allocation.",
+    description: "Gain insights from real-time data to improve disaster response strategies and resource allocation.",
     icon: BarChart2
   }
 ]
