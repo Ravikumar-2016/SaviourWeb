@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Bell, AlertTriangle, CheckCircle, TrendingUp, Map, Book, Users as Community, Plus, Heart, X, BarChart, Loader2, MapPin } from 'lucide-react'
+import { Bell, AlertTriangle, CheckCircle, TrendingUp, Map, Book, Users as Community, Plus, HandHelping, X, BarChart, Loader2, MapPin } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/firebase"
 import { collection, query, where, getDocs } from "firebase/firestore"
@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [weatherLoading, setWeatherLoading] = useState(true)
   const [weatherError, setWeatherError] = useState<string | null>(null)
   const [sosRaised, setSosRaised] = useState(0)
-  const [helpProvided, setHelpProvided] = useState(0)
+  const [sosResponded, setSosResponded] = useState(0)
   const [notificationsCount] = useState(0)
   const [openPopup, setOpenPopup] = useState<string | null>(null)
   const router = useRouter()
@@ -49,16 +49,15 @@ export default function Dashboard() {
       const sosRaisedSnap = await getDocs(sosRaisedQuery)
       setSosRaised(sosRaisedSnap.size)
 
-      const helpProvidedQuery = query(
+      const sosRespondedQuery = query(
         collection(db, "sos_requests"),
-        where("acceptedBy", "==", uid),
-        where("status", "in", ["accepted", "responded"])
+        where("responderId", "==", uid)
       )
-      const helpProvidedSnap = await getDocs(helpProvidedQuery)
-      setHelpProvided(helpProvidedSnap.size)
+      const sosRespondedSnap = await getDocs(sosRespondedQuery)
+      setSosResponded(sosRespondedSnap.size)
     } catch {
       setSosRaised(0)
-      setHelpProvided(0)
+      setSosResponded(0)
     }
   }
 
@@ -265,10 +264,10 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Heart className="h-5 w-5" />
-                    <span className="font-medium">Help Provided</span>
+                    <HandHelping className="h-5 w-5" />
+                    <span className="font-medium">SOS Responded</span>
                   </div>
-                  <div className="text-3xl font-bold">{helpProvided}</div>
+                  <div className="text-3xl font-bold">{sosResponded}</div>
                 </div>
                 <div className="text-sm opacity-80">Last 30 days</div>
               </div>

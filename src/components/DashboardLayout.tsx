@@ -3,7 +3,7 @@
 import { ReactNode, useState } from 'react'
 import { Sidebar } from '@/components/Sidebar'
 import { useResponsive } from '@/hooks/useResponsive'
-import { Menu, X, User, LogOut, Home, Globe, Info, Briefcase, Mail, Bell } from 'lucide-react'
+import { Menu, X, User, LogOut, Home, Globe, Info, Briefcase, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -15,6 +15,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,6 +32,7 @@ interface DashboardLayoutProps {
 
 function MobileHeader() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
   const handleSignOut = async () => {
     try {
@@ -107,7 +118,7 @@ function MobileHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer py-2">
+                <DropdownMenuItem onClick={() => setShowLogoutDialog(true)} className="text-red-600 cursor-pointer py-2">
                   <LogOut className="mr-3 h-5 w-5" />
                   Log Out
                 </DropdownMenuItem>
@@ -116,6 +127,24 @@ function MobileHeader() {
           </div>
         </div>
       </header>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to log out? You will need to sign in again to access your dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut} className="bg-red-600 hover:bg-red-700">
+              Log Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Mobile Sidebar Drawer */}
       {sidebarOpen && (
@@ -149,6 +178,8 @@ function MobileHeader() {
 }
 
 function DesktopNavbar() {
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+
   const handleSignOut = async () => {
     try {
       await auth.signOut()
@@ -159,6 +190,7 @@ function DesktopNavbar() {
   }
 
   return (
+    <>
     <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-6 py-4 sticky top-0 z-50 shadow-sm">
       <div className="flex items-center justify-between max-w-screen-2xl mx-auto h-12">
         {/* Left - Logo with larger text */}
@@ -194,40 +226,47 @@ function DesktopNavbar() {
           </Link>
         </nav>
 
-        {/* Right - Notification & Profile */}
-        <div className="flex items-center gap-2 min-w-[180px] justify-end">
-          {/* Notification Bell */}
-          <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50 relative">
-            <Bell className="h-5 w-5 text-gray-600" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
-          </Button>
+        {/* Right - Profile & Logout */}
+        <div className="flex items-center gap-3 min-w-[180px] justify-end">
+          {/* Profile Link */}
+          <Link href="/dashboard/profile" className="h-10 w-10 hover:bg-blue-50 rounded-md flex items-center justify-center transition-colors">
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+              <User className="h-5 w-5 text-white" />
+            </div>
+          </Link>
 
-          {/* Profile Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
-                  <User className="h-5 w-5 text-white" />
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/profile" className="flex items-center cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Logout Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setShowLogoutDialog(true)}
+            className="h-10 w-10 hover:bg-red-50 text-gray-600 hover:text-red-600 transition-colors"
+            title="Log Out"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </header>
+
+    {/* Logout Confirmation Dialog */}
+    <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to log out? You will need to sign in again to access your dashboard.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleSignOut} className="bg-red-600 hover:bg-red-700">
+            Log Out
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }
 

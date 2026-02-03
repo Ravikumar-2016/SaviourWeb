@@ -7,9 +7,20 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { auth } from "@/lib/firebase"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [user, setUser] = useState<import("firebase/auth").User | null>(null)
   const pathname = usePathname()
   
@@ -91,7 +102,7 @@ export default function Header() {
                   </Button>
                 )}
                 <Button
-                  onClick={handleSignOut}
+                  onClick={() => setShowLogoutDialog(true)}
                   variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
@@ -156,7 +167,7 @@ export default function Header() {
                   </Button>
                 )}
                 <Button
-                  onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+                  onClick={() => { setIsMenuOpen(false); setShowLogoutDialog(true); }}
                   variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
@@ -168,6 +179,24 @@ export default function Header() {
           </nav>
         </div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to log out? You will need to sign in again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut} className="bg-red-600 hover:bg-red-700">
+              Log Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   )
 }
