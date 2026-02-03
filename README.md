@@ -312,7 +312,7 @@ Real-time dashboard providing comprehensive overview of emergency situations, we
 One-tap emergency broadcast system with GPS tracking for rapid response during critical situations.
 
 ### 🌤️ Weather Monitoring
-Live weather data integration with severe alert notifications and 7-day forecasting capabilities.
+Live weather data integration with severe alert notifications and 5-day forecasting capabilities.
 
 ### 📚 Safety Guides
 Comprehensive disaster-specific safety guidelines with video tutorials and offline access features.
