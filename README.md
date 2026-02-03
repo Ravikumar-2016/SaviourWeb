@@ -354,16 +354,6 @@ git push origin feature/AmazingFeature
 
 ---
 
-## 📄 License
-
-<br/>
-
----
-
-<br/>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:667eea,100:764ba2&height=120&section=footer" width="100%"/>
-
 **⭐ Star this repository if it helped you!**
 
 Built with ❤️ by **[Ravikumar](https://github.com/Ravikumar-2016)** & the **Saviour Team**
