@@ -4,12 +4,14 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertTriangle, CheckCircle, XCircle, MapPin, ImagePlus, AlertCircle, Loader2 } from "lucide-react"
+import { AlertTriangle, CheckCircle, XCircle, MapPin, ImagePlus, AlertCircle, Loader2, Edit, Trash2, Eye, X, Clock, List } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
-import { addDoc, collection, serverTimestamp } from "firebase/firestore"
+import { addDoc, collection, serverTimestamp, onSnapshot, query, where, deleteDoc, doc } from "firebase/firestore"
 import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
+import SOSEditModal from "@/components/Modals/SOSEditModal"
 
 type EmergencyType =
   | "Medical Emergency"
@@ -54,6 +56,26 @@ const emergencyTypeIcons = {
   "Missing Person": "👤",
   "Public Disturbance": "🚨",
   "Other": "❓"
+}
+
+type SOSRequest = {
+  id: string
+  userId: string
+  latitude: number
+  longitude: number
+  emergencyType: string
+  alertLevel?: string
+  urgency: "High" | "Medium" | "Low"
+  description: string
+  createdAt: unknown
+  isPublic: boolean
+  status?: string
+  responderId?: string
+  responderName?: string
+  senderName?: string
+  senderContact?: string
+  address?: string
+  imageUrl?: string
 }
 
 function normalizeCity(city: string | null): string | null {
@@ -137,9 +159,49 @@ export default function SOSPage() {
   const [sosSent, setSosSent] = useState(false)
   const [canCancel, setCanCancel] = useState(false)
   const [cancelCountdown, setCancelCountdown] = useState(5)
+  
+  // Manage My SOS state
+  const [viewMode, setViewMode] = useState<"create" | "manage">("create")
+  const [mySosRequests, setMySosRequests] = useState<SOSRequest[]>([])
+  const [mySosLoading, setMySosLoading] = useState(true)
+  const [editingSOS, setEditingSOS] = useState<SOSRequest | null>(null)
+  const [selectedSOS, setSelectedSOS] = useState<SOSRequest | null>(null)
 
   // Get location from user profile
   const profileCoords = getUserCoordinates(userCity)
+  
+  // Fetch current user's SOS requests
+  useEffect(() => {
+    const user = auth.currentUser
+    if (!user) return
+    
+    const q = query(
+      collection(db, "sos_requests"),
+      where("userId", "==", user.uid)
+    )
+    
+    const unsub = onSnapshot(q, (snapshot) => {
+      const requests: SOSRequest[] = []
+      snapshot.forEach((docSnap) => {
+        requests.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        } as SOSRequest)
+      })
+      // Sort by createdAt descending
+      requests.sort((a, b) => {
+        const aTime = a.createdAt && typeof a.createdAt === 'object' && 'seconds' in a.createdAt 
+          ? (a.createdAt as { seconds: number }).seconds : 0
+        const bTime = b.createdAt && typeof b.createdAt === 'object' && 'seconds' in b.createdAt 
+          ? (b.createdAt as { seconds: number }).seconds : 0
+        return bTime - aTime
+      })
+      setMySosRequests(requests)
+      setMySosLoading(false)
+    })
+    
+    return () => unsub()
+  }, [userCity.uid])
 
   useEffect(() => {
     let timerId: ReturnType<typeof setTimeout> | undefined
@@ -286,6 +348,31 @@ export default function SOSPage() {
     alert("Your SOS alert has been cancelled.")
   }
 
+  // Delete SOS handler
+  const handleDeleteSOS = async (sos: SOSRequest) => {
+    if (!confirm("Are you sure you want to delete this SOS request?")) return
+    try {
+      await deleteDoc(doc(db, "sos_requests", sos.id))
+      setSelectedSOS(null)
+    } catch (e) {
+      console.error("Error deleting SOS:", e)
+      alert("Failed to delete SOS. Please try again.")
+    }
+  }
+
+  // Update SOS handler
+  const handleUpdateSOS = (sos: SOSRequest) => {
+    setSelectedSOS(null)
+    setEditingSOS(sos)
+  }
+
+  // Format timestamp
+  const formatTime = (timestamp: unknown) => {
+    if (!timestamp || typeof timestamp !== 'object' || !('seconds' in timestamp)) return "Unknown"
+    const date = new Date((timestamp as { seconds: number }).seconds * 1000)
+    return date.toLocaleString()
+  }
+
   // Loading state
   if (userLoading) {
     return (
@@ -328,24 +415,126 @@ export default function SOSPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Emergency Alert System</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Manage SOS</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {sosSent 
-              ? "Help is on the way!" 
-              : "Send an emergency alert to nearby responders and authorities"}
+            Create emergency alerts or manage your existing SOS requests
           </p>
         </div>
 
-        <Card className="shadow-lg overflow-hidden">
-          <CardHeader className="bg-indigo-600 dark:bg-indigo-800 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl">
-                  {sosSent ? "Alert Activated" : "Initiate Emergency Alert"}
-                </CardTitle>
-                <CardDescription className="text-indigo-100">
-                  {sosSent 
-                    ? "Responders have been notified of your situation" 
+        {/* View Mode Tabs */}
+        <div className="flex gap-2 mb-6 justify-center">
+          <Button
+            variant={viewMode === "create" ? "default" : "outline"}
+            onClick={() => setViewMode("create")}
+            className="flex items-center gap-2"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            Create SOS
+          </Button>
+          <Button
+            variant={viewMode === "manage" ? "default" : "outline"}
+            onClick={() => setViewMode("manage")}
+            className="flex items-center gap-2"
+          >
+            <List className="w-4 h-4" />
+            My SOS Requests
+            {mySosRequests.length > 0 && (
+              <Badge variant="secondary" className="ml-1">{mySosRequests.length}</Badge>
+            )}
+          </Button>
+        </div>
+
+        {viewMode === "manage" ? (
+          /* Manage My SOS Section */
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <List className="w-5 h-5" />
+                My SOS Requests
+              </CardTitle>
+              <CardDescription>
+                View, update, or delete your emergency alerts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {mySosLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                </div>
+              ) : mySosRequests.length === 0 ? (
+                <div className="text-center py-12">
+                  <AlertTriangle className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-gray-500">You haven&apos;t created any SOS requests yet.</p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => setViewMode("create")}
+                    className="mt-2"
+                  >
+                    Create your first SOS
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {mySosRequests.map((sos) => (
+                    <Card key={sos.id} className="relative border-l-4" style={{ borderLeftColor: alertLevelColors[(sos.urgency || sos.alertLevel) as keyof typeof alertLevelColors]?.replace('bg-', '#') || '#6366f1' }}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">{emergencyTypeIcons[sos.emergencyType as keyof typeof emergencyTypeIcons] || "❓"}</span>
+                          <span className="font-bold">{sos.emergencyType}</span>
+                          <Badge className={alertLevelColors[(sos.urgency || sos.alertLevel) as keyof typeof alertLevelColors] || "bg-gray-500"}>
+                            {sos.urgency || sos.alertLevel}
+                          </Badge>
+                          <Badge variant={sos.status === "responded" ? "default" : "outline"} className="ml-auto">
+                            {sos.status || "active"}
+                          </Badge>
+                        </div>
+                        {sos.description && (
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{sos.description}</p>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                          <MapPin className="w-4 h-4" />
+                          {sos.latitude.toFixed(4)}, {sos.longitude.toFixed(4)}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                          <Clock className="w-4 h-4" />
+                          {formatTime(sos.createdAt)}
+                        </div>
+                        {sos.responderId && (
+                          <div className="text-sm text-green-600 dark:text-green-400 mb-3 flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4" />
+                            Responded by: {sos.responderName || "Someone"}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setSelectedSOS(sos)}>
+                            <Eye className="w-4 h-4 mr-1" /> View
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleUpdateSOS(sos)}>
+                            <Edit className="w-4 h-4 mr-1" /> Update
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteSOS(sos)}>
+                            <Trash2 className="w-4 h-4 mr-1" /> Delete
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          /* Create SOS Section */
+          <Card className="shadow-lg overflow-hidden">
+            <CardHeader className="bg-indigo-600 dark:bg-indigo-800 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">
+                    {sosSent ? "Alert Activated" : "Initiate Emergency Alert"}
+                  </CardTitle>
+                  <CardDescription className="text-indigo-100">
+                    {sosSent 
+                      ? "Responders have been notified of your situation" 
                     : "Fill in the details below to request assistance"}
                 </CardDescription>
               </div>
@@ -539,11 +728,80 @@ export default function SOSPage() {
             )}
           </CardContent>
         </Card>
+      )}
 
         <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>In case you can&apos;t use this form, call emergency services directly.</p>
         </div>
       </div>
+
+      {/* SOS Edit Modal */}
+      <SOSEditModal
+        visible={!!editingSOS}
+        sosRequest={editingSOS}
+        onClose={() => setEditingSOS(null)}
+        onUpdate={() => setEditingSOS(null)}
+      />
+
+      {/* SOS Detail Modal */}
+      {selectedSOS && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-lg p-6 relative mx-4">
+            <button
+              type="button"
+              className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
+              onClick={() => setSelectedSOS(null)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-2xl">{emergencyTypeIcons[selectedSOS.emergencyType as keyof typeof emergencyTypeIcons] || "❓"}</span>
+              <span className="font-bold text-lg">{selectedSOS.emergencyType}</span>
+              <Badge className={alertLevelColors[(selectedSOS.urgency || selectedSOS.alertLevel) as keyof typeof alertLevelColors] || "bg-gray-500"}>
+                {selectedSOS.urgency || selectedSOS.alertLevel}
+              </Badge>
+            </div>
+            <Badge variant={selectedSOS.status === "responded" ? "default" : "outline"} className="mb-3">
+              Status: {selectedSOS.status || "active"}
+            </Badge>
+            {selectedSOS.description && (
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{selectedSOS.description}</p>
+            )}
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+              <MapPin className="w-4 h-4" />
+              Coordinates: {selectedSOS.latitude.toFixed(6)}, {selectedSOS.longitude.toFixed(6)}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+              <Clock className="w-4 h-4" />
+              Created: {formatTime(selectedSOS.createdAt)}
+            </div>
+            {selectedSOS.responderId && (
+              <div className="text-sm text-green-600 dark:text-green-400 mb-4 p-2 bg-green-50 dark:bg-green-900/20 rounded flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Responded by: {selectedSOS.responderName || "Someone"}
+              </div>
+            )}
+            {selectedSOS.imageUrl && (
+              <div className="mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={selectedSOS.imageUrl} 
+                  alt="SOS attachment" 
+                  className="w-full max-h-48 object-cover rounded-lg"
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleUpdateSOS(selectedSOS)}>
+                <Edit className="w-4 h-4 mr-1" /> Update
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => handleDeleteSOS(selectedSOS)}>
+                <Trash2 className="w-4 h-4 mr-1" /> Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

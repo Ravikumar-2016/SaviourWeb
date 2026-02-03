@@ -111,12 +111,15 @@ export default function NavigationPage() {
     }
   }, [userCity, userLoading])
 
-  // Filtering
-  const filteredSOS = sosRequests.filter((sos) =>
-    typeFilter === "All" ? true : sos.emergencyType === typeFilter
-  )
+  // Filtering - exclude current user's SOS (they manage their own in SOS page)
+  const filteredSOS = sosRequests.filter((sos) => {
+    // Exclude current user's SOS from global feed
+    if (user && sos.userId === user.uid) return false
+    // Apply type filter
+    return typeFilter === "All" ? true : sos.emergencyType === typeFilter
+  })
 
-  // Check if current user is the SOS creator
+  // Check if current user is the SOS creator (kept for modal actions)
   const isSOSCreator = (sos: SOSRequest) => user && user.uid === sos.userId
 
   // Respond Action
