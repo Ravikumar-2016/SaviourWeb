@@ -505,15 +505,15 @@ export default function SOSPage() {
                             Responded by: {sos.responderName || "Someone"}
                           </div>
                         )}
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => setSelectedSOS(sos)}>
-                            <Eye className="w-4 h-4 mr-1" /> View
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setSelectedSOS(sos)} className="flex-1 sm:flex-none min-w-[70px]">
+                            <Eye className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">View</span>
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleUpdateSOS(sos)}>
-                            <Edit className="w-4 h-4 mr-1" /> Update
+                          <Button size="sm" variant="outline" onClick={() => handleUpdateSOS(sos)} className="flex-1 sm:flex-none min-w-[80px]">
+                            <Edit className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Update</span>
                           </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteSOS(sos)}>
-                            <Trash2 className="w-4 h-4 mr-1" /> Delete
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteSOS(sos)} className="flex-1 sm:flex-none min-w-[80px]">
+                            <Trash2 className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Delete</span>
                           </Button>
                         </div>
                       </CardContent>

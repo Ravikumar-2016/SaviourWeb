@@ -117,8 +117,8 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
               </p>
             </div>
 
-            {/* Weather icon - always on the right */}
-            <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 flex items-center justify-center drop-shadow-2xl flex-shrink-0">
+            {/* Weather icon - always on the right, larger size */}
+            <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 flex items-center justify-center drop-shadow-2xl flex-shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={data.weather.icon}
@@ -128,15 +128,15 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
             </div>
           </div>
 
-          {/* Sunrise/Sunset - centered with even spacing */}
-          <div className="flex items-center justify-center gap-8 sm:gap-16 mt-6 sm:mt-8 pt-4 sm:pt-5 border-t border-white/20">
-            <div className="flex flex-col items-center gap-1 sm:gap-2">
-              <Sunrise className="w-6 h-6 sm:w-8 sm:h-8 opacity-90" />
-              <span className="opacity-90 text-sm sm:text-base font-medium">{data.sunrise}</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 sm:gap-2">
-              <Sunset className="w-6 h-6 sm:w-8 sm:h-8 opacity-90" />
+          {/* Sunset/Sunrise - centered with even spacing, sunset on left, sunrise on right */}
+          <div className="flex items-center justify-center gap-12 sm:gap-20 mt-6 sm:mt-8 pt-4 sm:pt-5 border-t border-white/20">
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <Sunset className="w-8 h-8 sm:w-10 sm:h-10 opacity-90" />
               <span className="opacity-90 text-sm sm:text-base font-medium">{data.sunset}</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <Sunrise className="w-8 h-8 sm:w-10 sm:h-10 opacity-90" />
+              <span className="opacity-90 text-sm sm:text-base font-medium">{data.sunrise}</span>
             </div>
           </div>
         </div>
