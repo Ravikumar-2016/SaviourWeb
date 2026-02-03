@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Analytics } from "@vercel/analytics/react"
 import { getServerSession } from "next-auth/next"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const merriweather = Merriweather({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-merriweather' })
@@ -30,6 +31,7 @@ export default async function RootLayout({
             {children}
           </main>
           <Footer />
+          <Toaster />
           <Analytics />
         </Providers>
       </body>
