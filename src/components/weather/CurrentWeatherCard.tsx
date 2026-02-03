@@ -97,7 +97,8 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
             </span>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
+          {/* Temperature, condition and weather icon - side by side on all screens */}
+          <div className="flex items-center justify-between gap-2">
             {/* Temperature and condition */}
             <div className="space-y-1 sm:space-y-2">
               <div className="flex items-start">
@@ -116,8 +117,8 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
               </p>
             </div>
 
-            {/* Weather icon */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 flex items-center justify-center drop-shadow-2xl self-center">
+            {/* Weather icon - always on the right */}
+            <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 flex items-center justify-center drop-shadow-2xl flex-shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={data.weather.icon}
@@ -127,15 +128,15 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
             </div>
           </div>
 
-          {/* Sunrise/Sunset */}
-          <div className="flex items-center gap-4 sm:gap-6 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/20">
-            <div className="flex items-center gap-2">
-              <Sunrise className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" />
-              <span className="opacity-90 text-sm sm:text-base">{data.sunrise}</span>
+          {/* Sunrise/Sunset - centered with even spacing */}
+          <div className="flex items-center justify-center gap-8 sm:gap-16 mt-6 sm:mt-8 pt-4 sm:pt-5 border-t border-white/20">
+            <div className="flex flex-col items-center gap-1 sm:gap-2">
+              <Sunrise className="w-6 h-6 sm:w-8 sm:h-8 opacity-90" />
+              <span className="opacity-90 text-sm sm:text-base font-medium">{data.sunrise}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Sunset className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" />
-              <span className="opacity-90 text-sm sm:text-base">{data.sunset}</span>
+            <div className="flex flex-col items-center gap-1 sm:gap-2">
+              <Sunset className="w-6 h-6 sm:w-8 sm:h-8 opacity-90" />
+              <span className="opacity-90 text-sm sm:text-base font-medium">{data.sunset}</span>
             </div>
           </div>
         </div>
