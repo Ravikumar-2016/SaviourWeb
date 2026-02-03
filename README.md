@@ -11,8 +11,8 @@
 
 <!-- Badges Row 2 -->
 <p>
-  <img src="https://img.shields.io/badge/Next.js-15.1-black?style=flat-square&logo=next.js" alt="Next.js"/>
-  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react" alt="React"/>
+  <img src="https://img.shields.io/badge/Next.js-15.5-black?style=flat-square&logo=next.js" alt="Next.js"/>
+  <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react" alt="React"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/Firebase-Auth%20%26%20DB-FFCA28?style=flat-square&logo=firebase" alt="Firebase"/>
   <img src="https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?style=flat-square&logo=tailwindcss" alt="TailwindCSS"/>
@@ -93,10 +93,10 @@
 <td width="50%">
 
 ### 🌤️ Weather Intelligence
-- **Live Weather Data** - OpenWeatherMap integration
+- **Dual API System** - WeatherAPI.com (primary) + OpenWeatherMap (fallback)
 - **Severe Alerts** - Storm & disaster warnings
-- **Forecasting** - 7-day weather predictions
-- **Historical Data** - Past disaster analysis
+- **Forecasting** - 7-day weather predictions + hourly forecasts
+- **Profile-based Location** - Uses city from user profile
 
 </td>
 <td width="50%">
@@ -139,11 +139,11 @@
 
 | Category | Technologies |
 |:--------:|:------------|
-| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js_15-black?style=flat-square&logo=next.js) ![React](https://img.shields.io/badge/React_18-61DAFB?style=flat-square&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) |
+| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js_15.5-black?style=flat-square&logo=next.js) ![React](https://img.shields.io/badge/React_18.3-61DAFB?style=flat-square&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) |
 | **Styling** | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) ![Framer](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) ![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=flat-square) |
 | **Backend** | ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel) |
-| **APIs** | ![OpenWeather](https://img.shields.io/badge/OpenWeatherMap-EB6E4C?style=flat-square) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=google&logoColor=white) |
-| **State** | ![Zustand](https://img.shields.io/badge/Zustand-433E38?style=flat-square) ![React Query](https://img.shields.io/badge/React_Hooks-61DAFB?style=flat-square&logo=react&logoColor=black) |
+| **APIs** | ![WeatherAPI](https://img.shields.io/badge/WeatherAPI-5A9FD4?style=flat-square) ![OpenWeather](https://img.shields.io/badge/OpenWeatherMap-EB6E4C?style=flat-square) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=google&logoColor=white) |
+| **State** | ![React Query](https://img.shields.io/badge/React_Hooks-61DAFB?style=flat-square&logo=react&logoColor=black) |
 
 </div>
 
@@ -156,14 +156,14 @@ saviour/
 ├── 📂 public/              # Static assets & safety videos
 ├── 📂 src/
 │   ├── 📂 app/             # Next.js App Router
-│   │   ├── 📂 api/         # API routes
+│   │   ├── 📂 api/         # API routes (weather, email)
 │   │   ├── 📂 auth/        # Login, Signup, Error pages
-│   │   ├── 📂 dashboard/   # User dashboard & features
-│   │   └── 📂 admin-dashboard/  # Admin management panel
+│   │   └── 📂 dashboard/   # User dashboard & features
 │   ├── 📂 components/
 │   │   ├── 📂 Safety/      # Disaster-specific safety guides
 │   │   ├── 📂 ui/          # shadcn/ui components
-│   │   └── 📂 Modals/      # Modal components
+│   │   ├── 📂 Modals/      # Modal components
+│   │   └── 📂 weather/     # Weather display components
 │   ├── 📂 hooks/           # Custom React hooks
 │   ├── 📂 lib/             # Utilities, Firebase config, actions
 │   └── 📂 types/           # TypeScript definitions
@@ -264,7 +264,8 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 # ═══════════════════════════════════════════════════════════
 # 🌐 API KEYS (Required for full functionality)
 # ═══════════════════════════════════════════════════════════
-NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=your_openweathermap_key
+NEXT_PUBLIC_WEATHER_API_KEY=your_weatherapi_key        # Primary weather source
+NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=your_openweathermap_key  # Fallback weather source
 NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 

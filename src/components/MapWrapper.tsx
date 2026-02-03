@@ -1,84 +1,103 @@
-"use client"
+'use client'
 
-import { useRef, useState } from "react"
-import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from "@react-google-maps/api"
+import { useEffect, useRef } from 'react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
-const containerStyle = {
-  width: "100%",
-  height: "500px",
-}
+// Fix for default marker icons in Leaflet with Next.js
+const defaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+})
 
-interface MarkerData {
-  id: string | number
+L.Marker.prototype.options.icon = defaultIcon
+
+interface MapMarker {
   lat: number
   lng: number
-  label: string
-  urgency?: string
-  iconUrl?: string
-  info?: string
+  id: string
+  label?: string
 }
 
 interface MapWrapperProps {
-  center: {
-    lat: number
-    lng: number
-  }
-  markers: MarkerData[]
-  onMarkerClick?: (markerId: string | number) => void
+  center: { lat: number; lng: number }
+  markers?: MapMarker[]
+  onMarkerClick?: (id: string) => void
+  zoom?: number
+  className?: string
 }
 
-export default function MapWrapper({ center, markers, onMarkerClick }: MapWrapperProps) {
-  const mapRef = useRef<google.maps.Map | null>(null)
-  const [activeMarker, setActiveMarker] = useState<string | number | null>(null)
+export default function MapWrapper({ 
+  center, 
+  markers = [], 
+  onMarkerClick, 
+  zoom = 12,
+  className = ''
+}: MapWrapperProps) {
+  const mapRef = useRef<L.Map | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const markersRef = useRef<L.Marker[]>([])
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: [],
-  })
+  // Initialize map
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return
 
-  if (loadError) return <div>Error loading maps</div>
-  if (!isLoaded) return <div>Loading...</div>
+    mapRef.current = L.map(containerRef.current).setView([center.lat, center.lng], zoom)
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapRef.current)
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [])
+
+  // Update center when it changes
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.setView([center.lat, center.lng], zoom)
+    }
+  }, [center.lat, center.lng, zoom])
+
+  // Update markers
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove())
+    markersRef.current = []
+
+    // Add new markers
+    markers.forEach(markerData => {
+      const marker = L.marker([markerData.lat, markerData.lng])
+        .addTo(mapRef.current!)
+      
+      if (markerData.label) {
+        marker.bindPopup(markerData.label)
+      }
+
+      if (onMarkerClick) {
+        marker.on('click', () => onMarkerClick(markerData.id))
+      }
+
+      markersRef.current.push(marker)
+    })
+  }, [markers, onMarkerClick])
 
   return (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={center}
-      zoom={12}
-      onLoad={map => {
-        mapRef.current = map
-      }}
-      onClick={() => setActiveMarker(null)}
-      options={{
-        clickableIcons: false,
-        mapTypeControl: false,
-        streetViewControl: false,
-      }}
-    >
-      {markers.map(marker => (
-        <Marker
-          key={marker.id}
-          position={{ lat: marker.lat, lng: marker.lng }}
-          title={marker.label}
-          icon={marker.iconUrl || undefined}
-          label={marker.urgency ? { text: marker.urgency, color: marker.urgency === 'High' ? '#ef4444' : marker.urgency === 'Medium' ? '#fbbf24' : '#3b82f6', fontWeight: 'bold', fontSize: '14px' } : undefined}
-          onClick={() => {
-            setActiveMarker(marker.id === activeMarker ? null : marker.id)
-            if (onMarkerClick) onMarkerClick(marker.id)
-          }}
-        >
-          {activeMarker === marker.id && (
-            <InfoWindow onCloseClick={() => setActiveMarker(null)}>
-              <div style={{ minWidth: 180 }}>
-                <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{marker.label}</div>
-                {marker.urgency && (
-                  <div style={{ color: marker.urgency === 'High' ? '#ef4444' : marker.urgency === 'Medium' ? '#fbbf24' : '#3b82f6', fontWeight: 'bold' }}>{marker.urgency}</div>
-                )}
-                {marker.info && <div style={{ marginTop: 4 }}>{marker.info}</div>}
-              </div>
-            </InfoWindow>
-          )}
-        </Marker>
-      ))}
-    </GoogleMap>
+    <div 
+      ref={containerRef} 
+      className={`w-full h-full min-h-[400px] ${className}`}
+      style={{ zIndex: 1 }}
+    />
   )
 }

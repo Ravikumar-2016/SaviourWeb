@@ -1,376 +1,318 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { MapPin, Sun, CloudRain, Wind, Droplet, Sunrise, Sunset, Loader2, RefreshCw } from "lucide-react"
-import Image from "next/image"
-import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
-import Link from "next/link"
+import { Card, CardContent } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { 
+  RefreshCw, 
+  MapPin, 
+  AlertCircle, 
+  CloudOff,
+  Settings
+} from "lucide-react"
+import { useUserCity } from "@/hooks/useUserCity"
+import { 
+  WeatherSkeleton,
+  CurrentWeatherCard,
+  HourlyForecastCard,
+  DailyForecastCard 
+} from "@/components/weather"
 
-const OPEN_WEATHER_API_KEY = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY
-
-interface HourlyWeather {
-  dt: number
-  temp: number
-  weather: Array<{ icon: string; description: string }>
-  pop?: number
-  rain?: { "1h"?: number }
+// Weather data interface matching API response
+interface WeatherData {
+  source: "weatherapi" | "openweathermap" | "mock"
+  location: {
+    name: string
+    region?: string
+    country: string
+    timezone?: string
+  }
+  current: {
+    temp: number
+    feels_like: number
+    humidity: number
+    pressure: number
+    wind_speed: number
+    wind_deg: number
+    wind_dir: string
+    uvi: number | null
+    visibility: number
+    weather: {
+      main: string
+      description: string
+      icon: string
+    }
+    sunrise: string
+    sunset: string
+    is_day: boolean
+  }
+  hourly: Array<{
+    dt: number
+    temp: number
+    feels_like?: number
+    humidity: number
+    wind_speed: number
+    pop: number
+    uv?: number
+    weather: {
+      main: string
+      description: string
+      icon: string
+    }
+  }>
+  daily: Array<{
+    dt: number
+    temp_min: number
+    temp_max: number
+    humidity: number
+    wind_speed: number
+    pop: number
+    uv?: number
+    sunrise?: string
+    sunset?: string
+    weather: {
+      main: string
+      description: string
+      icon: string
+    }
+  }>
 }
 
-interface DailyWeather {
-  dt: number
-  temp: { min: number; max: number }
-  weather: Array<{ icon: string; description: string }>
-  uvi: number
-  pop?: number
-  humidity: number
-  wind_speed: number
-  rain?: number
-  snow?: number
-}
-
-interface CurrentWeather {
-  temp: number
-  feels_like: number
-  humidity: number
-  wind_speed: number
-  wind_deg: number
-  uvi: number
-  pressure: number
-  sunrise: number
-  sunset: number
-  visibility: number
-  weather: Array<{ main: string; description: string; icon: string }>
-}
-
-type WeatherData = {
-  current: CurrentWeather
-  hourly: HourlyWeather[]
-  daily: DailyWeather[]
-}
-
-function getWeatherGradient(main: string) {
-  if (!main) return "bg-gradient-to-br from-indigo-200 to-indigo-400"
-  main = main.toLowerCase()
-  if (main.includes("rain")) return "bg-gradient-to-br from-blue-400 to-blue-700"
-  if (main.includes("cloud")) return "bg-gradient-to-br from-gray-300 to-gray-500"
-  if (main.includes("sun") || main.includes("clear")) return "bg-gradient-to-br from-yellow-200 to-yellow-400"
-  return "bg-gradient-to-br from-indigo-200 to-indigo-400"
-}
-
-function getWindDirection(deg: number) {
-  const dirs = [
-    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
-  ]
-  return dirs[Math.round(deg / 22.5) % 16]
-}
-
-function getUVLevel(uvi: number) {
-  if (uvi <= 2) return { level: "Low", color: "text-green-600" }
-  if (uvi <= 5) return { level: "Moderate", color: "text-yellow-600" }
-  if (uvi <= 7) return { level: "High", color: "text-orange-600" }
-  if (uvi <= 10) return { level: "Very High", color: "text-red-600" }
-  return { level: "Extreme", color: "text-purple-600" }
-}
-
-function formatTime(ts: number) {
-  return new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-}
-
-function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })
-}
+type LoadingState = "idle" | "loading" | "success" | "error"
 
 export default function WeatherPage() {
-  const { userCity, loading: userLoading, isProfileComplete } = useUserCity()
-  const [weatherLoading, setWeatherLoading] = useState(true)
-  const [weather, setWeather] = useState<WeatherData | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const router = useRouter()
+  const { userCity, loading: userLoading, isProfileComplete } = useUserCity({ redirectIfNoCity: false })
+  
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [loadingState, setLoadingState] = useState<LoadingState>("idle")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Fetch weather using user's profile location
-  const fetchWeather = useCallback(async (lat: number, lon: number) => {
-    setWeatherLoading(true)
-    setError(null)
+  // Fetch weather from our API route
+  const fetchWeather = useCallback(async () => {
+    if (!userCity.city) return
+
+    setLoadingState("loading")
+    setErrorMessage(null)
+
     try {
-      const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=metric&exclude=minutely,alerts&appid=${OPEN_WEATHER_API_KEY}`
-      const resp = await fetch(url)
-      if (!resp.ok) throw new Error("Weather API error")
-      const data = await resp.json()
-      setWeather(data)
-      setError(null)
-    } catch {
-      setWeather(null)
-      setError("Failed to fetch weather data. Please try again.")
-    } finally {
-      setWeatherLoading(false)
-    }
-  }, [])
+      const params = new URLSearchParams({
+        city: userCity.city,
+      })
+      if (userCity.state) params.append("state", userCity.state)
+      if (userCity.country) params.append("country", userCity.country)
 
-  // Load weather when user data is available
+      const response = await fetch(`/api/weather?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch weather data")
+      }
+
+      const data: WeatherData = await response.json()
+      
+      setWeatherData(data)
+      setLoadingState("success")
+      setLastUpdated(new Date())
+      setErrorMessage(null)
+    } catch (error) {
+      console.error("Weather fetch error:", error)
+      setLoadingState("error")
+      setErrorMessage("Unable to fetch weather data. Please try again later.")
+    }
+  }, [userCity.city, userCity.state, userCity.country])
+
+  // Initial fetch when user data is available
   useEffect(() => {
     if (userLoading) return
     
-    const coords = getUserCoordinates(userCity)
-    if (coords) {
-      fetchWeather(coords.latitude, coords.longitude)
+    if (userCity.city) {
+      fetchWeather()
     } else {
-      setWeatherLoading(false)
-      setError("Please set your city in your profile to view weather data.")
+      setLoadingState("idle")
     }
-  }, [userCity, userLoading, fetchWeather])
+  }, [userCity.city, userLoading, fetchWeather])
 
-  const onRefresh = async () => {
-    setRefreshing(true)
-    const coords = getUserCoordinates(userCity)
-    if (coords) {
-      await fetchWeather(coords.latitude, coords.longitude)
-    }
-    setRefreshing(false)
+  // Refresh handler
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await fetchWeather()
+    setIsRefreshing(false)
   }
 
-  // Loading UI
-  if (userLoading || weatherLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <Progress value={70} className="w-1/2 mb-4" />
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
-        <span className="text-lg text-indigo-700">Loading weather data...</span>
-        {userCity.city && (
-          <span className="text-sm text-gray-500 mt-2">
-            Fetching weather for {userCity.city}
-          </span>
-        )}
-      </div>
-    )
+  // Format last updated time
+  const formatLastUpdated = (date: Date | null): string => {
+    if (!date) return ""
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  }
+
+  // Loading state - show skeleton
+  if (userLoading || loadingState === "loading") {
+    return <WeatherSkeleton />
   }
 
   // No city set - prompt to set profile
   if (!isProfileComplete || !userCity.city) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md text-center">
-          <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MapPin className="h-8 w-8 text-indigo-600" />
-          </div>
-          <h2 className="text-xl font-semibold mb-2">Set Your Location</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Please set your city in your profile to view weather information for your area.
-          </p>
-          <Button asChild>
-            <Link href="/dashboard/profile">Update Profile</Link>
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-0 shadow-2xl">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <MapPin className="h-10 w-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Set Your Location
+            </h2>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
+              To provide accurate weather information, please set your city in your profile. 
+              Weather data will be based on your profile location.
+            </p>
+            <Button 
+              onClick={() => router.push("/dashboard/profile")}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+              size="lg"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Update Profile
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Error UI
-  if (error || !weather) {
+  // Error state
+  if (loadingState === "error" && !weatherData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md text-center">
-          <span className="text-red-500 text-lg mb-4 block">{error || "Weather data not available."}</span>
-          <Button onClick={onRefresh} disabled={refreshing}>
-            {refreshing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </>
-            )}
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-0 shadow-2xl">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <CloudOff className="h-10 w-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-red-600 dark:text-red-400">
+              Weather Unavailable
+            </h2>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
+              {errorMessage || "We couldn't fetch weather data for your location. Please check your internet connection and try again."}
+            </p>
+            <div className="space-y-3">
+              <Button 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="w-full"
+                size="lg"
+              >
+                {isRefreshing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => router.push("/dashboard/profile")}
+                className="w-full"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Check Location Settings
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Defensive check for weather data
-  if (!weather.current || !weather.hourly || !weather.daily) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <span className="text-red-500 text-lg mb-2">
-          Weather data incomplete. Please refresh.
-        </span>
-        <Button onClick={onRefresh} className="mt-2">Refresh</Button>
-      </div>
-    )
+  // Success state - show weather data
+  if (!weatherData) {
+    return <WeatherSkeleton />
   }
-
-  // Main UI
-  const gradientClass = getWeatherGradient(weather.current.weather[0].main)
-  const coords = getUserCoordinates(userCity)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-2">
-      <div className="max-w-3xl mx-auto">
-        {/* Current Weather Card */}
-        <Card className={`mb-8 shadow-lg overflow-hidden ${gradientClass}`}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-white">Weather Forecast</CardTitle>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onRefresh} 
-              disabled={refreshing}
-              className="text-white hover:bg-white/20"
-            >
-              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-5 h-5 text-white" />
-                  <span className="font-semibold text-white">
-                    {userCity.city}{userCity.state ? `, ${userCity.state}` : ""}{userCity.country ? `, ${userCity.country}` : ""}
-                  </span>
-                </div>
-                {coords && (
-                  <div className="text-white text-sm mb-2 opacity-80">
-                    Lat: {coords.latitude.toFixed(4)}, Lon: {coords.longitude.toFixed(4)}
-                  </div>
-                )}
-                <div className="text-5xl font-bold text-white mb-2">
-                  {Math.round(weather.current.temp)}°C
-                </div>
-                <div className="text-lg text-white font-semibold capitalize mb-2">
-                  {weather.current.weather[0].description}
-                </div>
-                <div className="text-white mb-2">
-                  Feels like {Math.round(weather.current.feels_like)}°C
-                </div>
-                <div className="flex gap-4 text-white mb-2">
-                  <div className="flex items-center gap-1">
-                    <Wind className="w-4 h-4" />
-                    {Math.round(weather.current.wind_speed)} m/s {getWindDirection(weather.current.wind_deg)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Droplet className="w-4 h-4" />
-                    {weather.current.humidity}%
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Sun className="w-4 h-4" />
-                    {weather.current.uvi !== undefined
-                      ? <span className={getUVLevel(weather.current.uvi).color}>
-                          {Math.round(weather.current.uvi)} ({getUVLevel(weather.current.uvi).level})
-                        </span>
-                      : "N/A"}
-                  </div>
-                </div>
-                <div className="flex gap-4 text-white">
-                  <div className="flex items-center gap-1">
-                    <Sunrise className="w-4 h-4" />
-                    {formatTime(weather.current.sunrise)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Sunset className="w-4 h-4" />
-                    {formatTime(weather.current.sunset)}
-                  </div>
-                </div>
-              </div>
-              <div className="relative w-32 h-32">
-                <Image
-                  src={`https://openweathermap.org/img/wn/${weather.current.weather[0].icon}@4x.png`}
-                  alt={`${weather.current.weather[0].description} icon`}
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-full">
+              <MapPin className="w-5 h-5 text-primary" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">
+                Weather Forecast
+              </h1>
+              {lastUpdated && (
+                <p className="text-sm text-muted-foreground">
+                  Updated at {formatLastUpdated(lastUpdated)}
+                  {weatherData.source === "mock" && " (Demo data)"}
+                </p>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="rounded-full shadow-md"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+
+        {/* Data source indicator (only for non-primary sources) */}
+        {weatherData.source !== "weatherapi" && (
+          <Alert variant={weatherData.source === "mock" ? "default" : "default"} className="border-blue-200 bg-blue-50/50 dark:bg-blue-900/20">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-800 dark:text-blue-300">
+              {weatherData.source === "mock" ? "Demo Mode" : "Alternative Data Source"}
+            </AlertTitle>
+            <AlertDescription className="text-blue-700 dark:text-blue-400">
+              {weatherData.source === "mock" 
+                ? "Showing demo weather data. Configure API keys for real data."
+                : "Using backup weather service. Some features may be limited."}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Current Weather */}
+        <CurrentWeatherCard 
+          data={weatherData.current} 
+          location={weatherData.location} 
+        />
 
         {/* Hourly Forecast */}
-        <Card className="mb-8 shadow">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Next 24 Hours</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex overflow-x-auto gap-4 pb-2">
-              {weather.hourly.slice(0, 24).map((hour, idx: number) => (
-                <div key={idx} className="min-w-[80px] flex flex-col items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-2 shadow">
-                  <div className="text-xs text-gray-500">{idx === 0 ? "Now" : formatTime(hour.dt)}</div>
-                  <div className="relative w-10 h-10">
-                    <Image
-                      src={`https://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png`}
-                      alt={`${hour.weather[0].description} icon`}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="font-bold text-lg">{Math.round(hour.temp)}°</div>
-                  {hour.pop && hour.pop > 0 && (
-                    <div className="flex items-center gap-1 text-blue-500 text-xs">
-                      <CloudRain className="w-4 h-4" />
-                      {Math.round(hour.pop * 100)}%
-                    </div>
-                  )}
-                  {hour.rain && hour.rain["1h"] && (
-                    <div className="text-blue-500 text-xs">Rain: {hour.rain["1h"]} mm</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {weatherData.hourly.length > 0 && (
+          <HourlyForecastCard data={weatherData.hourly} />
+        )}
 
         {/* Daily Forecast */}
-        <Card className="shadow">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">7-Day Forecast</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {weather.daily.slice(0, 7).map((day, idx: number) => {
-                const uv = getUVLevel(day.uvi)
-                return (
-                  <div key={idx} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border">
-                    <div className="relative w-12 h-12">
-                      <Image
-                        src={`https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png`}
-                        alt={`${day.weather[0].description} icon`}
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-semibold">{formatDate(day.dt)}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 capitalize">{day.weather[0].description}</div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <div className="flex items-center gap-2">
-                        {day.pop && day.pop > 0 && (
-                          <>
-                            <CloudRain className="w-4 h-4 text-blue-500" />
-                            <span className="text-blue-500 text-xs">{Math.round(day.pop * 100)}%</span>
-                          </>
-                        )}
-                        <span className="font-bold text-lg">{Math.round(day.temp.max)}° / {Math.round(day.temp.min)}°</span>
-                      </div>
-                      {day.rain && (
-                        <div className="text-blue-500 text-xs">Rain: {day.rain} mm</div>
-                      )}
-                      {day.snow && (
-                        <div className="text-blue-300 text-xs">Snow: {day.snow} mm</div>
-                      )}
-                      <div className={`text-xs mt-1 ${uv.color}`}>UV: {day.uvi} ({uv.level})</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        {weatherData.daily.length > 0 && (
+          <DailyForecastCard data={weatherData.daily} />
+        )}
+
+        {/* Footer info */}
+        <div className="text-center text-sm text-muted-foreground pb-4">
+          <p>
+            Weather data for {weatherData.location.name}
+            {weatherData.location.region && `, ${weatherData.location.region}`}
+            {weatherData.location.country && `, ${weatherData.location.country}`}
+          </p>
+          <p className="mt-1 text-xs">
+            Data source: {weatherData.source === "weatherapi" ? "WeatherAPI" : 
+                         weatherData.source === "openweathermap" ? "OpenWeatherMap" : "Demo"}
+          </p>
+        </div>
       </div>
     </div>
   )

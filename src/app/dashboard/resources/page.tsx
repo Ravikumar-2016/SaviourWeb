@@ -9,13 +9,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { 
-  AlertTriangle, CheckCircle2, Home, Hammer, Truck, Radio, Utensils, 
+  CheckCircle2, Home, Hammer, Truck, Radio, Utensils, 
   HeartPulse, Package, Loader2, X, Plus, Edit, Trash2, Phone, MapPin,
   User, Clock, Gift
 } from "lucide-react"
 import { db, auth } from "@/lib/firebase"
 import { 
-  collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, 
+  collection, query, where, onSnapshot, addDoc, updateDoc, 
   deleteDoc, doc, serverTimestamp 
 } from "firebase/firestore"
 import Link from "next/link"

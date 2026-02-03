@@ -8,6 +8,12 @@ const nextConfig = {
         port: '',
         pathname: '/img/wn/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.weatherapi.com',
+        port: '',
+        pathname: '/weather/**',
+      },
     ],
   },
   reactStrictMode: true,

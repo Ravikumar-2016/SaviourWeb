@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { 
   Phone, Ambulance, Flame, Shield, Plus, Trash2, User, Heart, 
-  MapPin, MessageSquare, Share2, Copy, Loader2, AlertTriangle,
+  MapPin, MessageSquare, Share2, Loader2, AlertTriangle,
   X, UserPlus, PhoneCall
 } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
@@ -45,7 +45,6 @@ export default function EmergencyHelpPage() {
   const [contacts, setContacts] = useState<PersonalContact[]>([])
   const [loading, setLoading] = useState(true)
   const [locationLoading, setLocationLoading] = useState(false)
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null)
   
   // Add contact modal
   const [showAddModal, setShowAddModal] = useState(false)
@@ -136,7 +135,6 @@ export default function EmergencyHelpPage() {
     setLocationLoading(true)
     try {
       const location = await getCurrentLocation()
-      setCurrentLocation(location)
       const mapsUrl = `https://www.google.com/maps?q=${location.lat},${location.lng}`
       
       if (navigator.share) {

@@ -1,12 +1,48 @@
 'use client'
 
-import { ReactNode } from 'react'
-import { DynamicMobileHeader } from './DaynamicDashboardComponents'
+import { ReactNode, useState } from 'react'
 import { Sidebar } from '@/components/Sidebar'
 import { useResponsive } from '@/hooks/useResponsive'
+import { Menu, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import Image from 'next/image'
 
 interface DashboardLayoutProps {
   children: ReactNode;
+}
+
+function MobileHeader() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  return (
+    <>
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        <Link href="/dashboard" className="flex items-center">
+          <Image src="/Saviour.png" alt="SAVIOUR" width={120} height={30} />
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="md:hidden"
+        >
+          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+      </header>
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div 
+            className="fixed inset-0 bg-black/50" 
+            onClick={() => setSidebarOpen(false)} 
+          />
+          <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg">
+            <Sidebar onLinkClick={() => setSidebarOpen(false)} isMobile />
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
