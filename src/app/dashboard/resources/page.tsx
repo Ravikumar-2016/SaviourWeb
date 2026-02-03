@@ -538,64 +538,66 @@ export default function ResourcesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto">
-        <Card className="mb-8 border-0 shadow-lg">
-          <CardHeader className="border-b">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Card className="mb-6 border-0 shadow-lg mx-0 rounded-none sm:rounded-lg sm:mx-0">
+          <CardHeader className="border-b px-4 sm:px-6">
+            <div className="flex flex-col gap-4">
               <div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Resources</CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {userCity.city} • {filteredOffers.length} Available Resources
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Resources</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300 flex items-center gap-1 text-sm">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{userCity.city} • {filteredOffers.length} Available Resources</span>
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button onClick={() => openOfferModal()} className="flex items-center gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button onClick={() => openOfferModal()} className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm">
                   <Gift className="w-4 h-4" />
-                  Offer Resource
+                  <span className="hidden xs:inline">Offer</span> Resource
                 </Button>
-                <Button onClick={() => openRequestModal()} variant="outline" className="flex items-center gap-2">
+                <Button onClick={() => openRequestModal()} variant="outline" className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm">
                   <Plus className="w-4 h-4" />
-                  Request Resource
+                  Request <span className="hidden xs:inline">Resource</span>
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <Tabs value={tab} onValueChange={v => setTab(v as "offers" | "myoffers" | "requests")} className="w-full">
-              <TabsList className="w-full rounded-none border-b bg-transparent p-0">
-                <TabsTrigger 
-                  value="offers" 
-                  className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-4 px-6"
-                >
-                  Available Resources
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="myoffers" 
-                  className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-4 px-6"
-                >
-                  My Offers
-                  {myOffers.filter(o => o.status === "available").length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {myOffers.filter(o => o.status === "available").length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="requests" 
-                  className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-4 px-6"
-                >
-                  My Requests
-                  {myRequests.filter(r => r.status === "pending").length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {myRequests.filter(r => r.status === "pending").length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto">
+                <TabsList className="w-full min-w-max rounded-none border-b bg-transparent p-0 h-auto">
+                  <TabsTrigger 
+                    value="offers" 
+                    className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    Available Resources
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="myoffers" 
+                    className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    My Offers
+                    {myOffers.filter(o => o.status === "available").length > 0 && (
+                      <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">
+                        {myOffers.filter(o => o.status === "available").length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="requests" 
+                    className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    My Requests
+                    {myRequests.filter(r => r.status === "pending").length > 0 && (
+                      <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">
+                        {myRequests.filter(r => r.status === "pending").length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+              </div>
               
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {/* Available Resources Tab */}
                 <TabsContent value="offers">
                   {/* Category Filters */}

@@ -65,15 +65,15 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
   const tempRange = overallMax - overallMin
 
   return (
-    <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-          <CalendarDays className="w-5 h-5 text-primary" />
+    <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-none sm:rounded-xl">
+      <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+          <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           {forecastInfo.totalDays}-Day Forecast
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-4">
-        <div className="space-y-2">
+      <CardContent className="pb-3 sm:pb-4 px-3 sm:px-6">
+        <div className="space-y-1 sm:space-y-2">
           {data.map((day, idx) => {
             const { day: dayName, date, isToday } = formatDay(day.dt)
             
@@ -84,15 +84,15 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
             return (
               <div
                 key={idx}
-                className={`flex items-center gap-3 p-3 md:p-4 rounded-xl transition-all duration-200
+                className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl transition-all duration-200
                   ${isToday 
                     ? "bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/30" 
                     : "bg-slate-100/60 dark:bg-slate-700/40 hover:bg-slate-100 dark:hover:bg-slate-700/60"
                   }`}
               >
                 {/* Day name */}
-                <div className="w-20 md:w-24 shrink-0">
-                  <span className={`font-medium ${isToday ? "text-primary" : ""}`}>
+                <div className="w-16 sm:w-20 md:w-24 shrink-0">
+                  <span className={`font-medium text-sm sm:text-base ${isToday ? "text-primary" : ""}`}>
                     {dayName}
                   </span>
                   {date && (
@@ -100,9 +100,9 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
                   )}
                 </div>
 
-                {/* Weather icon and condition */}
-                <div className="flex items-center gap-2 w-24 md:w-32 shrink-0">
-                  <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
+                {/* Weather icon */}
+                <div className="flex items-center gap-1 sm:gap-2 w-12 sm:w-24 md:w-32 shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={day.weather.icon}
@@ -117,23 +117,23 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
 
                 {/* Rain probability */}
                 {day.pop > 0 && (
-                  <div className="flex items-center gap-1 text-blue-500 w-12 shrink-0">
-                    <Droplets className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1 text-blue-500 w-10 sm:w-12 shrink-0">
+                    <Droplets className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span className="text-xs font-medium">{Math.round(day.pop * 100)}%</span>
                   </div>
                 )}
-                {day.pop <= 0 && <div className="w-12 shrink-0" />}
+                {day.pop <= 0 && <div className="w-10 sm:w-12 shrink-0" />}
 
                 {/* Temperature bar and values */}
-                <div className="flex-1 flex items-center gap-2 min-w-0">
+                <div className="flex-1 flex items-center gap-1 sm:gap-2 min-w-0">
                   {/* Min temp */}
-                  <div className="flex items-center gap-1 w-12 shrink-0 justify-end">
-                    <ArrowDown className="w-3 h-3 text-blue-400" />
-                    <span className="text-sm text-muted-foreground">{Math.round(day.temp_min)}°</span>
+                  <div className="flex items-center gap-0.5 sm:gap-1 w-10 sm:w-12 shrink-0 justify-end">
+                    <ArrowDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-400" />
+                    <span className="text-xs sm:text-sm text-muted-foreground">{Math.round(day.temp_min)}°</span>
                   </div>
 
                   {/* Temperature bar */}
-                  <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden relative min-w-[60px]">
+                  <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden relative min-w-[40px] sm:min-w-[60px]">
                     <div
                       className="absolute h-full rounded-full bg-gradient-to-r from-blue-400 via-yellow-400 to-orange-500"
                       style={{
@@ -144,9 +144,9 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
                   </div>
 
                   {/* Max temp */}
-                  <div className="flex items-center gap-1 w-12 shrink-0">
-                    <ArrowUp className="w-3 h-3 text-orange-500" />
-                    <span className="text-sm font-medium">{Math.round(day.temp_max)}°</span>
+                  <div className="flex items-center gap-0.5 sm:gap-1 w-10 sm:w-12 shrink-0">
+                    <ArrowUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-orange-500" />
+                    <span className="text-xs sm:text-sm font-medium">{Math.round(day.temp_max)}°</span>
                   </div>
                 </div>
 

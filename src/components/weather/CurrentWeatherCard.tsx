@@ -78,9 +78,9 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
   const uvInfo = data.uvi !== null ? getUVLevel(data.uvi) : null
 
   return (
-    <Card className="overflow-hidden border-0 shadow-2xl">
+    <Card className="overflow-hidden border-0 shadow-2xl sm:rounded-xl rounded-none">
       {/* Main weather display */}
-      <div className={`bg-gradient-to-br ${gradientClass} p-6 md:p-8 text-white relative overflow-hidden`}>
+      <div className={`bg-gradient-to-br ${gradientClass} p-4 sm:p-6 md:p-8 text-white relative overflow-hidden`}>
         {/* Background decoration */}
         <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]" />
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -88,36 +88,36 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
         
         <div className="relative z-10">
           {/* Location */}
-          <div className="flex items-center gap-2 mb-4">
-            <MapPin className="w-5 h-5 opacity-90" />
-            <span className="font-medium text-lg">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 opacity-90 flex-shrink-0" />
+            <span className="font-medium text-sm sm:text-lg truncate">
               {location.name}
               {location.region && `, ${location.region}`}
               {location.country && `, ${location.country}`}
             </span>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             {/* Temperature and condition */}
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               <div className="flex items-start">
-                <span className="text-7xl md:text-8xl font-light tracking-tight">
+                <span className="text-5xl sm:text-7xl md:text-8xl font-light tracking-tight">
                   {Math.round(data.temp)}
                 </span>
-                <span className="text-3xl md:text-4xl font-light mt-2">°C</span>
+                <span className="text-2xl sm:text-3xl md:text-4xl font-light mt-1 sm:mt-2">°C</span>
               </div>
               
-              <p className="text-xl md:text-2xl font-medium capitalize opacity-95">
+              <p className="text-lg sm:text-xl md:text-2xl font-medium capitalize opacity-95">
                 {data.weather.description}
               </p>
               
-              <p className="text-lg opacity-80">
+              <p className="text-sm sm:text-lg opacity-80">
                 Feels like {Math.round(data.feels_like)}°C
               </p>
             </div>
 
             {/* Weather icon */}
-            <div className="w-32 h-32 md:w-40 md:h-40 flex items-center justify-center drop-shadow-2xl">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 flex items-center justify-center drop-shadow-2xl self-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={data.weather.icon}
@@ -128,57 +128,57 @@ export function CurrentWeatherCard({ data, location }: CurrentWeatherProps) {
           </div>
 
           {/* Sunrise/Sunset */}
-          <div className="flex items-center gap-6 mt-6 pt-4 border-t border-white/20">
+          <div className="flex items-center gap-4 sm:gap-6 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/20">
             <div className="flex items-center gap-2">
-              <Sunrise className="w-5 h-5 opacity-80" />
-              <span className="opacity-90">{data.sunrise}</span>
+              <Sunrise className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" />
+              <span className="opacity-90 text-sm sm:text-base">{data.sunrise}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Sunset className="w-5 h-5 opacity-80" />
-              <span className="opacity-90">{data.sunset}</span>
+              <Sunset className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" />
+              <span className="opacity-90 text-sm sm:text-base">{data.sunset}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Weather details */}
-      <CardContent className="p-4 md:p-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <CardContent className="p-3 sm:p-4 md:p-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           {/* Humidity */}
-          <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/30">
-            <Droplets className="w-6 h-6 text-blue-500" />
-            <span className="text-sm text-muted-foreground">Humidity</span>
-            <span className="text-lg font-semibold">{data.humidity}%</span>
+          <div className="flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/30">
+            <Droplets className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+            <span className="text-xs sm:text-sm text-muted-foreground">Humidity</span>
+            <span className="text-base sm:text-lg font-semibold">{data.humidity}%</span>
           </div>
 
           {/* Wind */}
-          <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-teal-50 dark:bg-teal-900/20 transition-colors hover:bg-teal-100 dark:hover:bg-teal-900/30">
-            <Wind className="w-6 h-6 text-teal-500" />
-            <span className="text-sm text-muted-foreground">Wind</span>
-            <span className="text-lg font-semibold">{data.wind_speed.toFixed(1)} m/s {data.wind_dir}</span>
+          <div className="flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-4 rounded-xl bg-teal-50 dark:bg-teal-900/20 transition-colors hover:bg-teal-100 dark:hover:bg-teal-900/30">
+            <Wind className="w-5 h-5 sm:w-6 sm:h-6 text-teal-500" />
+            <span className="text-xs sm:text-sm text-muted-foreground">Wind</span>
+            <span className="text-base sm:text-lg font-semibold">{data.wind_speed.toFixed(1)} m/s {data.wind_dir}</span>
           </div>
 
           {/* Pressure */}
-          <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 transition-colors hover:bg-purple-100 dark:hover:bg-purple-900/30">
-            <Gauge className="w-6 h-6 text-purple-500" />
-            <span className="text-sm text-muted-foreground">Pressure</span>
-            <span className="text-lg font-semibold">{data.pressure} hPa</span>
+          <div className="flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 transition-colors hover:bg-purple-100 dark:hover:bg-purple-900/30">
+            <Gauge className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
+            <span className="text-xs sm:text-sm text-muted-foreground">Pressure</span>
+            <span className="text-base sm:text-lg font-semibold">{data.pressure} hPa</span>
           </div>
 
           {/* UV Index or Visibility */}
           {uvInfo ? (
-            <div className={`flex flex-col items-center gap-2 p-4 rounded-xl ${uvInfo.bgColor} transition-colors`}>
-              <Sun className={`w-6 h-6 ${uvInfo.color}`} />
-              <span className="text-sm text-muted-foreground">UV Index</span>
-              <span className={`text-lg font-semibold ${uvInfo.color}`}>
+            <div className={`flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-4 rounded-xl ${uvInfo.bgColor} transition-colors`}>
+              <Sun className={`w-5 h-5 sm:w-6 sm:h-6 ${uvInfo.color}`} />
+              <span className="text-xs sm:text-sm text-muted-foreground">UV Index</span>
+              <span className={`text-base sm:text-lg font-semibold ${uvInfo.color}`}>
                 {data.uvi} ({uvInfo.level})
               </span>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50">
-              <Eye className="w-6 h-6 text-slate-500" />
-              <span className="text-sm text-muted-foreground">Visibility</span>
-              <span className="text-lg font-semibold">{data.visibility.toFixed(1)} km</span>
+            <div className="flex flex-col items-center gap-1 sm:gap-2 p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50">
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-slate-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Visibility</span>
+              <span className="text-base sm:text-lg font-semibold">{data.visibility.toFixed(1)} km</span>
             </div>
           )}
         </div>

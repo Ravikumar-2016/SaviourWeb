@@ -3,10 +3,17 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { Facebook, Twitter, Instagram, Mail, Phone } from 'lucide-react'
 
 
 export default function Footer() {
+  const pathname = usePathname()
+  
+  // Hide footer on dashboard pages - dashboard has its own layout
+  if (pathname?.startsWith('/dashboard')) {
+    return null
+  }
 
   return (
     <footer className="bg-gradient-to-br from-slate-800 via-blue-700 to-cyan-600 text-white py-8 font-sans">

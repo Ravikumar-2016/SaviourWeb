@@ -240,20 +240,20 @@ export default function WeatherPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 px-0 sm:px-4 md:px-6 py-0 sm:py-4 md:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-4 sm:px-0 py-4 sm:py-0">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 bg-primary/10 rounded-full">
-              <MapPin className="w-5 h-5 text-primary" />
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
                 Weather Forecast
               </h1>
               {lastUpdated && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Updated at {formatLastUpdated(lastUpdated)}
                 </p>
               )}
@@ -264,33 +264,39 @@ export default function WeatherPage() {
             size="icon"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="rounded-full shadow-md"
+            className="rounded-full shadow-md h-9 w-9 sm:h-10 sm:w-10"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
         </div>
 
         {/* Current Weather */}
-        <CurrentWeatherCard 
-          data={weatherData.current} 
-          location={weatherData.location} 
-        />
+        <div className="px-0 sm:px-0">
+          <CurrentWeatherCard 
+            data={weatherData.current} 
+            location={weatherData.location} 
+          />
+        </div>
 
         {/* Hourly Forecast */}
         {weatherData.hourly.length > 0 && (
-          <HourlyForecastCard data={weatherData.hourly} />
+          <div className="px-0 sm:px-0">
+            <HourlyForecastCard data={weatherData.hourly} />
+          </div>
         )}
 
         {/* Daily Forecast */}
         {weatherData.daily.length > 0 && (
-          <DailyForecastCard 
-            data={weatherData.daily}
-            forecastInfo={weatherData.forecastInfo}
-          />
+          <div className="px-0 sm:px-0">
+            <DailyForecastCard 
+              data={weatherData.daily}
+              forecastInfo={weatherData.forecastInfo}
+            />
+          </div>
         )}
 
         {/* Footer info */}
-        <div className="text-center text-sm text-muted-foreground pb-4">
+        <div className="text-center text-xs sm:text-sm text-muted-foreground pb-4 px-4">
           <p>
             Weather data for {weatherData.location.name}
             {weatherData.location.region && `, ${weatherData.location.region}`}

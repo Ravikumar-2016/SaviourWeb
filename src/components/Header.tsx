@@ -34,8 +34,13 @@ export default function Header() {
     }
   }
 
+  // Hide header on dashboard pages - dashboard has its own layout
+  if (isOnDashboard) {
+    return null
+  }
+
   return (
-    <header className="bg-white text-black font-sans">
+    <header className="bg-white text-black font-sans sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-2">

@@ -166,7 +166,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-6 space-y-6 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -174,22 +174,6 @@ export default function Dashboard() {
             {greeting()}{userCity.fullName ? `, ${userCity.fullName}` : ""}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            {notificationsCount > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center">
-                {notificationsCount}
-              </Badge>
-            )}
-          </Button>
-          <Avatar>
-            <AvatarImage src={userCity.photoURL || undefined} />
-            <AvatarFallback>
-              {userCity.fullName ? userCity.fullName.charAt(0).toUpperCase() : "U"}
-            </AvatarFallback>
-          </Avatar>
         </div>
       </div>
 
