@@ -4,11 +4,9 @@ import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { 
   RefreshCw, 
   MapPin, 
-  AlertCircle, 
   CloudOff,
   Settings
 } from "lucide-react"
@@ -25,9 +23,6 @@ interface WeatherData {
   source: "weatherapi" | "openweathermap" | "combined" | "mock"
   forecastInfo: {
     totalDays: number
-    weatherApiDays: number
-    openWeatherDays: number
-    message: string
   }
   location: {
     name: string
@@ -78,7 +73,6 @@ interface WeatherData {
     uv?: number
     sunrise?: string
     sunset?: string
-    source?: "weatherapi" | "openweathermap" | "mock"
     weather: {
       main: string
       description: string
@@ -261,7 +255,6 @@ export default function WeatherPage() {
               {lastUpdated && (
                 <p className="text-sm text-muted-foreground">
                   Updated at {formatLastUpdated(lastUpdated)}
-                  {weatherData.source === "mock" && " (Demo data)"}
                 </p>
               )}
             </div>
@@ -276,20 +269,6 @@ export default function WeatherPage() {
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
         </div>
-
-        {/* Data source indicator (only for non-primary sources) */}
-        {weatherData.source !== "weatherapi" && (
-          <Alert variant={weatherData.source === "mock" ? "default" : "default"} className="border-blue-200 bg-blue-50/50 dark:bg-blue-900/20">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800 dark:text-blue-300">
-              {weatherData.source === "mock" ? "Demo Mode" : 
-               weatherData.source === "combined" ? "Combined Data Sources" : "Alternative Data Source"}
-            </AlertTitle>
-            <AlertDescription className="text-blue-700 dark:text-blue-400">
-              {weatherData.forecastInfo.message}
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* Current Weather */}
         <CurrentWeatherCard 
@@ -316,9 +295,6 @@ export default function WeatherPage() {
             Weather data for {weatherData.location.name}
             {weatherData.location.region && `, ${weatherData.location.region}`}
             {weatherData.location.country && `, ${weatherData.location.country}`}
-          </p>
-          <p className="mt-1 text-xs">
-            {weatherData.forecastInfo.message}
           </p>
         </div>
       </div>

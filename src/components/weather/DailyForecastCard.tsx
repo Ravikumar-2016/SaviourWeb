@@ -1,8 +1,7 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Droplets, ArrowUp, ArrowDown, Info } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CalendarDays, Droplets, ArrowUp, ArrowDown } from "lucide-react"
 
 interface DailyForecastProps {
   data: Array<{
@@ -15,7 +14,6 @@ interface DailyForecastProps {
     uv?: number
     sunrise?: string
     sunset?: string
-    source?: "weatherapi" | "openweathermap" | "mock"
     weather: {
       main: string
       description: string
@@ -24,9 +22,6 @@ interface DailyForecastProps {
   }>
   forecastInfo: {
     totalDays: number
-    weatherApiDays: number
-    openWeatherDays: number
-    message: string
   }
 }
 
@@ -72,26 +67,10 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
   return (
     <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-            <CalendarDays className="w-5 h-5 text-primary" />
-            {forecastInfo.totalDays}-Day Forecast
-          </CardTitle>
-          {forecastInfo.weatherApiDays > 0 && forecastInfo.openWeatherDays > 0 && (
-            <div className="flex items-center gap-2 text-xs">
-              <Badge variant="outline" className="text-xs">
-                Days 1-{forecastInfo.weatherApiDays}: WeatherAPI
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                Days {forecastInfo.weatherApiDays + 1}-{forecastInfo.totalDays}: OpenWeatherMap
-              </Badge>
-            </div>
-          )}
-        </div>
-        <CardDescription className="flex items-center gap-1 text-xs mt-1">
-          <Info className="w-3 h-3" />
-          {forecastInfo.message}
-        </CardDescription>
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+          <CalendarDays className="w-5 h-5 text-primary" />
+          {forecastInfo.totalDays}-Day Forecast
+        </CardTitle>
       </CardHeader>
       <CardContent className="pb-4">
         <div className="space-y-2">
@@ -102,17 +81,12 @@ export function DailyForecastCard({ data, forecastInfo }: DailyForecastProps) {
             const minPos = tempRange > 0 ? ((day.temp_min - overallMin) / tempRange) * 100 : 0
             const maxPos = tempRange > 0 ? ((day.temp_max - overallMin) / tempRange) * 100 : 100
             
-            // Check if this day is from OpenWeatherMap (for visual indicator)
-            const isFromOpenWeather = day.source === "openweathermap"
-            
             return (
               <div
                 key={idx}
                 className={`flex items-center gap-3 p-3 md:p-4 rounded-xl transition-all duration-200
                   ${isToday 
                     ? "bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/30" 
-                    : isFromOpenWeather
-                    ? "bg-slate-100/80 dark:bg-slate-700/60 border-l-2 border-blue-400"
                     : "bg-slate-100/60 dark:bg-slate-700/40 hover:bg-slate-100 dark:hover:bg-slate-700/60"
                   }`}
               >
