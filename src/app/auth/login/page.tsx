@@ -9,6 +9,7 @@ import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { Loader2, Shield, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
+import type { User } from "@/types/user"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -19,13 +20,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  // Redirect to dashboard after successful login
+  // Check if user profile is complete and redirect accordingly
   const checkUserAndRedirect = async (uid: string): Promise<boolean> => {
     try {
-      // Check users collection
       const userDoc = await getDoc(doc(db, "users", uid))
       if (userDoc.exists()) {
-        router.replace("/dashboard")
+        const data = userDoc.data()
+        // If profile is incomplete (no city), redirect to profile page
+        if (!data.city) {
+          router.replace("/dashboard/profile")
+        } else {
+          router.replace("/dashboard")
+        }
         return true
       }
       return false
@@ -80,7 +86,7 @@ export default function LoginPage() {
     }
   }
 
-  // Google login - using signInWithPopup for reliable cross-platform support
+  // Google login
   const handleGoogleLogin = async () => {
     setError(null)
     setGoogleLoading(true)
@@ -90,20 +96,30 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider)
       
       // Check if user exists in users collection
-      const redirected = await checkUserAndRedirect(result.user.uid)
+      const userDoc = await getDoc(doc(db, "users", result.user.uid))
       
-      if (!redirected) {
+      if (userDoc.exists()) {
+        const data = userDoc.data()
+        // If profile is incomplete (no city), redirect to profile page
+        if (!data.city) {
+          router.replace("/dashboard/profile")
+        } else {
+          router.replace("/dashboard")
+        }
+      } else {
         // New user - create account in users collection
-        await setDoc(doc(db, "users", result.user.uid), {
+        const userData: User = {
           uid: result.user.uid,
-          email: result.user.email,
+          email: result.user.email || "",
           fullName: result.user.displayName || "",
-          city: "",
-          photoURL: result.user.photoURL || "",
           provider: "google",
+          photoURL: result.user.photoURL || "",
           createdAt: new Date().toISOString(),
-        })
-        router.replace("/dashboard")
+        }
+        
+        await setDoc(doc(db, "users", result.user.uid), userData)
+        // New user needs to complete profile
+        router.replace("/dashboard/profile")
       }
     } catch (err: unknown) {
       const error = err as { code?: string }

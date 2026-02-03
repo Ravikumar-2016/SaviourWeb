@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,6 +8,8 @@ import { AlertTriangle, CheckCircle, XCircle, MapPin, ImagePlus, AlertCircle, Lo
 import { auth, db } from "@/lib/firebase"
 import { addDoc, collection, serverTimestamp } from "firebase/firestore"
 import { Progress } from "@/components/ui/progress"
+import Link from "next/link"
+import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
 
 type EmergencyType =
   | "Medical Emergency"
@@ -125,141 +126,20 @@ function AlertLevelPicker({
 }
 
 export default function SOSPage() {
+  const { userCity, loading: userLoading, isProfileComplete } = useUserCity()
   const [selectedEmergencyType, setSelectedEmergencyType] = useState<EmergencyType | null>(null)
   const [selectedAlertLevel, setSelectedAlertLevel] = useState<AlertLevel>("High")
   const [description, setDescription] = useState("")
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null)
-  const [city, setCity] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
   const [sosSent, setSosSent] = useState(false)
   const [canCancel, setCanCancel] = useState(false)
   const [cancelCountdown, setCancelCountdown] = useState(5)
-  const [locationError, setLocationError] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const router = useRouter()
 
-  // Use local storage to cache location data
-  const getLocationFromCache = () => {
-    try {
-      const cachedData = localStorage.getItem('emergency_location_cache')
-      if (cachedData) {
-        const { location, city, timestamp } = JSON.parse(cachedData)
-        // Check if cache is less than 5 minutes old
-        if (location && city && timestamp && Date.now() - timestamp < 5 * 60 * 1000) {
-          return { location, city }
-        }
-      }
-    } catch (e) {
-      console.error("Error reading cached location:", e)
-    }
-    return null
-  }
-
-  const saveLocationToCache = (location: { latitude: number; longitude: number }, cityName: string | null) => {
-    try {
-      localStorage.setItem('emergency_location_cache', JSON.stringify({
-        location,
-        city: cityName,
-        timestamp: Date.now()
-      }))
-    } catch (e) {
-      console.error("Error caching location:", e)
-    }
-  }
-
-  // Get city from coordinates using reverse geocoding
-  const getCityFromCoordinates = async (latitude: number, longitude: number): Promise<string | null> => {
-    try {
-      // Use Promise.race to implement a faster timeout
-      const result = await Promise.race([
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`),
-        new Promise<Response>((_, reject) => 
-          setTimeout(() => reject(new Error('Geocoding timeout')), 3000)
-        )
-      ]) as Response
-      
-      const data = await result.json()
-      return data.address?.city || data.address?.town || data.address?.village || null
-    } catch (e) {
-      console.error("Geocoding error:", e)
-      return null
-    }
-  }
-
-  useEffect(() => {
-    if (!("geolocation" in navigator)) {
-      setLocationError(true)
-      return
-    }
-    
-    // First check cache for instant display
-    const cachedData = getLocationFromCache()
-    if (cachedData) {
-      setUserLocation(cachedData.location)
-      setCity(cachedData.city)
-    }
-
-    // Use high accuracy with a shorter timeout for faster response
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const locationData = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }
-        setUserLocation(locationData)
-        
-        // Run city detection in parallel, don't wait for it
-        getCityFromCoordinates(pos.coords.latitude, pos.coords.longitude)
-          .then(cityName => {
-            if (cityName) {
-              setCity(cityName)
-              // Cache the successful result
-              saveLocationToCache(locationData, cityName)
-            }
-          })
-          .catch(() => {
-            // If reverse geocoding fails but we have coordinates, 
-            // we can still proceed with the alert
-            console.log("Could not determine city, but location is available")
-          })
-      },
-      (error) => {
-        console.error("Geolocation error:", error)
-        setLocationError(true)
-        setUserLocation(null)
-        
-        // If we have cached data and geolocation fails, still use the cache
-        if (cachedData && !userLocation) {
-          setUserLocation(cachedData.location)
-          setCity(cachedData.city)
-        }
-      },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 5000, 
-        maximumAge: 60000 
-      }
-    )
-    
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        })
-      },
-      () => {}, 
-      { 
-        enableHighAccuracy: false, 
-        timeout: 2000,
-        maximumAge: 300000
-      }
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Get location from user profile
+  const profileCoords = getUserCoordinates(userCity)
 
   useEffect(() => {
     let timerId: ReturnType<typeof setTimeout> | undefined
@@ -337,12 +217,11 @@ export default function SOSPage() {
       alert("Please select an emergency type.")
       return
     }
-    if (!userLocation) {
-      alert("Could not fetch your location. Please enable location services.")
+    if (!profileCoords) {
+      alert("Location not available. Please set your city in your profile first.")
       return
     }
     
-    // Don't block on city if we have coordinates
     setIsSending(true)
     try {
       const user = auth.currentUser
@@ -352,33 +231,24 @@ export default function SOSPage() {
         return
       }
       
-      // Process image upload and SOS creation in parallel
-      const uploadPromise = imageFile ? uploadImageAsBase64(imageFile).catch(error => {
-        console.error("Image upload error:", error)
-        return null
-      }) : Promise.resolve(null)
-      
-      // Use IP-based geolocation as backup if we don't have city data
-      let cityName = city
-      if (!cityName) {
+      // Process image upload
+      let imageUrl: string | null = null
+      if (imageFile) {
         try {
-          const ipResponse = await fetch('https://ipapi.co/json/')
-          const ipData = await ipResponse.json()
-          cityName = ipData.city || null
-        } catch (e) {
-          console.error("IP geolocation error:", e)
+          imageUrl = await uploadImageAsBase64(imageFile)
+        } catch (error) {
+          console.error("Image upload error:", error)
         }
       }
       
-      // Wait for the image upload to complete
-      const imageUrl = await uploadPromise
-      
-      // Create the SOS document with the most accurate location data we have
+      // Create the SOS document using profile location
       await addDoc(collection(db, "sos_requests"), {
         userId: user.uid,
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        city: normalizeCity(cityName), // Use whatever city data we have, even if null
+        latitude: profileCoords.latitude,
+        longitude: profileCoords.longitude,
+        city: normalizeCity(userCity.city),
+        state: userCity.state || null,
+        country: userCity.country || null,
         emergencyType: selectedEmergencyType,
         alertLevel: selectedAlertLevel,
         description,
@@ -386,7 +256,7 @@ export default function SOSPage() {
         isPublic: true,
         senderName: user.displayName || user.email?.split('@')[0] || "Anonymous",
         senderContact: user.phoneNumber || user.email || "",
-        imageUrl: imageUrl || null,
+        imageUrl: imageUrl,
         status: "active",
         deviceInfo: {
           userAgent: navigator.userAgent,
@@ -394,19 +264,6 @@ export default function SOSPage() {
           timestamp: new Date().toISOString()
         }
       })
-      
-      // Update location cache after successful SOS submission
-      if (userLocation && city) {
-        try {
-          localStorage.setItem('emergency_location_cache', JSON.stringify({
-            location: userLocation,
-            city: city,
-            timestamp: Date.now()
-          }))
-        } catch (e) {
-          console.error("Error updating location cache:", e)
-        }
-      }
       
       setSosSent(true)
       setCanCancel(true)
@@ -427,6 +284,44 @@ export default function SOSPage() {
     setImageFile(null)
     setImagePreview(null)
     alert("Your SOS alert has been cancelled.")
+  }
+
+  // Loading state
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
+          <span className="text-gray-600">Loading your profile...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // No city set - prompt user to set location
+  if (!isProfileComplete || !userCity.city || !profileCoords) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Emergency Alert System</h1>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md mx-auto text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="h-8 w-8 text-red-600" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Location Required</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              To use the emergency alert system, please set your city and location in your profile first.
+              This ensures responders can locate you quickly.
+            </p>
+            <Button asChild>
+              <Link href="/dashboard/profile">Update Profile</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -591,58 +486,28 @@ export default function SOSPage() {
                     <MapPin className="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     <div className="w-full">
                       <div className="flex justify-between items-center mb-1">
-                        <h4 className="font-medium text-blue-800 dark:text-blue-200">Your Current Location</h4>
-                        {userLocation && (
-                          <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full">
-                            ✓ Located
-                          </span>
-                        )}
+                        <h4 className="font-medium text-blue-800 dark:text-blue-200">Your Location</h4>
+                        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full">
+                          ✓ From Profile
+                        </span>
                       </div>
-                      
-                      {userLocation ? (
-                        <>
-                          <div className="flex flex-wrap justify-between gap-2">
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              Coordinates: {userLocation.latitude.toFixed(6)}, {userLocation.longitude.toFixed(6)}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Accuracy: High
-                            </p>
-                          </div>
-                          
-                          {city ? (
-                            <div className="mt-1 p-1.5 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded flex items-center">
-                              <CheckCircle className="w-3 h-3 text-green-500 mr-1.5" />
-                              <p className="text-sm text-gray-700 dark:text-gray-300">
-                                <span className="font-medium">Detected location:</span> {city}
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="mt-1 flex items-center">
-                              <Loader2 className="w-3 h-3 text-amber-500 animate-spin mr-1.5" />
-                              <p className="text-sm text-amber-600 dark:text-amber-400">
-                                Determining city name...
-                              </p>
-                            </div>
-                          )}
-                        </>
-                      ) : locationError ? (
-                        <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
-                          <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                            <AlertCircle className="w-4 h-4" />
-                            Could not access your location. Please enable location services.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="flex justify-center py-2">
-                          <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-2"></div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              Detecting your location...
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap justify-between gap-2">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          Coordinates: {profileCoords.latitude.toFixed(6)}, {profileCoords.longitude.toFixed(6)}
+                        </p>
+                      </div>
+                      <div className="mt-1 p-1.5 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded flex items-center">
+                        <CheckCircle className="w-3 h-3 text-green-500 mr-1.5" />
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Location:</span> {userCity.city}
+                          {userCity.state ? `, ${userCity.state}` : ""}
+                          {userCity.country ? `, ${userCity.country}` : ""}
+                        </p>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        Update your location in <Link href="/dashboard/profile" className="text-indigo-600 hover:underline">Profile Settings</Link>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -651,7 +516,7 @@ export default function SOSPage() {
                   type="submit"
                   size="lg"
                   className="w-full py-6 text-lg font-bold shadow-lg"
-                  disabled={isSending || imageUploading || !userLocation}
+                  disabled={isSending || imageUploading}
                 >
                   {isSending ? (
                     <div className="flex items-center gap-2">

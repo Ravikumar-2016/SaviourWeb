@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { auth, db } from "@/lib/firebase"
 import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { doc, setDoc } from "firebase/firestore"
-import { Loader2, User, Mail, Lock, MapPin, Eye, EyeOff, AlertCircle, CheckCircle2, Shield } from "lucide-react"
+import { doc, setDoc, getDoc } from "firebase/firestore"
+import { Loader2, User, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, Shield } from "lucide-react"
+import type { User as UserType } from "@/types/user"
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -20,10 +21,9 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState("")
-  const [city, setCity] = useState("")
   const router = useRouter()
 
-  // Google signup - using signInWithPopup for reliable cross-platform support
+  // Google signup
   const handleGoogleSignup = async () => {
     setGoogleLoading(true)
     setError(null)
@@ -33,20 +33,29 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       
-      // Create user profile
-      await setDoc(doc(db, "users", user.uid), {
+      // Check if user already exists
+      const existingUser = await getDoc(doc(db, "users", user.uid))
+      if (existingUser.exists()) {
+        // User already exists, redirect to dashboard
+        router.push("/dashboard")
+        return
+      }
+      
+      // Create new user profile
+      const userData: UserType = {
         uid: user.uid,
-        email: user.email,
+        email: user.email || "",
         fullName: user.displayName || "",
-        city: "",
-        photoURL: user.photoURL || "",
         provider: "google",
+        photoURL: user.photoURL || "",
         createdAt: new Date().toISOString(),
-      })
+      }
+      
+      await setDoc(doc(db, "users", user.uid), userData)
       
       setSuccess(true)
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/dashboard/profile")
       }, 1000)
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
@@ -70,11 +79,11 @@ export default function SignupPage() {
     setError(null)
 
     if (!name.trim()) {
-      setError("Please enter your name")
+      setError("Please enter your full name")
       return
     }
-    if (!city.trim()) {
-      setError("Please enter your city")
+    if (!email.trim()) {
+      setError("Please enter your email")
       return
     }
     if (password.length < 6) {
@@ -92,19 +101,20 @@ export default function SignupPage() {
       await updateProfile(result.user, { displayName: name })
       
       // Create user profile
-      await setDoc(doc(db, "users", result.user.uid), {
+      const userData: UserType = {
         uid: result.user.uid,
         email,
         fullName: name,
-        city,
-        photoURL: "",
         provider: "email",
+        photoURL: "",
         createdAt: new Date().toISOString(),
-      })
+      }
+      
+      await setDoc(doc(db, "users", result.user.uid), userData)
       
       setSuccess(true)
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/dashboard/profile")
       }, 1000)
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
@@ -139,7 +149,7 @@ export default function SignupPage() {
             </div>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Account Created!</h2>
-          <p className="text-gray-600 mb-4">Redirecting you to the dashboard...</p>
+          <p className="text-gray-600 mb-4">Please complete your profile...</p>
           <Loader2 className="h-6 w-6 animate-spin mx-auto text-indigo-600" />
         </div>
       </div>
@@ -166,7 +176,7 @@ export default function SignupPage() {
 
           {/* Form Content */}
           <div className="px-6 sm:px-8 pb-6">
-            <form className="space-y-3" onSubmit={handleEmailSignup}>
+            <form className="space-y-4" onSubmit={handleEmailSignup}>
               {/* Name Input */}
               <div className="space-y-1">
                 <label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</label>
@@ -181,25 +191,6 @@ export default function SignupPage() {
                     className="pl-11 h-12 text-base border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-indigo-500"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    disabled={isLoading || googleLoading}
-                  />
-                </div>
-              </div>
-
-              {/* City Input */}
-              <div className="space-y-1">
-                <label htmlFor="city" className="text-sm font-medium text-gray-700">City</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="city"
-                    type="text"
-                    autoComplete="address-level2"
-                    required
-                    placeholder="Your city"
-                    className="pl-11 h-12 text-base border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-indigo-500"
-                    value={city}
-                    onChange={e => setCity(e.target.value)}
                     disabled={isLoading || googleLoading}
                   />
                 </div>

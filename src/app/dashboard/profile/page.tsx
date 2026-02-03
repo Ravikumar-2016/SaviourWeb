@@ -1,47 +1,46 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Key, Timer, MapPin, Save, User, HeartPulse, ChevronRight, Loader2 } from "lucide-react"
+import { MapPin, Save, User, Phone, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
-import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore"
-import { updatePassword } from "firebase/auth"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useAuth } from "@/lib/auth-context"
+import type { User as UserType } from "@/types/user"
 
-type HelpHistoryItem = {
-  id: string
-  latitude?: number
-  longitude?: number
-  emergencyType?: string
-  createdAt?: { toDate?: () => Date } | string | number
-  description?: string
-  status?: string
+interface GeocodingResult {
+  city: string
+  state: string
+  country: string
+  latitude: number
+  longitude: number
 }
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [user, setUser] = useState<import("firebase/auth").User | null>(null)
-  const [name, setName] = useState("")
-  const [contact, setContact] = useState("")
-  const [helpHistory, setHelpHistory] = useState<HelpHistoryItem[]>([])
-  const [modal, setModal] = useState<null | "changePassword">(null)
-  const [modalValue, setModalValue] = useState("")
-  const [modalError, setModalError] = useState<string | null>(null)
+  const [validatingLocation, setValidatingLocation] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [locationValidated, setLocationValidated] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  
+  // Form fields
+  const [fullName, setFullName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [city, setCity] = useState("")
+  const [state, setState] = useState("")
+  const [country, setCountry] = useState("")
+  const [latitude, setLatitude] = useState<number | undefined>()
+  const [longitude, setLongitude] = useState<number | undefined>()
+  const [photoURL, setPhotoURL] = useState("")
+  
+  const { user, refreshProfile } = useAuth()
   const router = useRouter()
 
   // Auth state and redirect if not logged in
@@ -49,96 +48,193 @@ export default function ProfilePage() {
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
       if (!firebaseUser) {
         router.push("/auth/login")
-      } else {
-        setUser(firebaseUser)
       }
     })
     return () => unsubscribe()
   }, [router])
 
-  // Fetch profile and help history
+  // Fetch profile data
   useEffect(() => {
     if (!user) return
+    
     const fetchProfile = async () => {
       setLoading(true)
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
-          const data = userDoc.data()
-          setName(data.fullName || "")
-          setContact(data.contact || "")
+          const data = userDoc.data() as UserType
+          setFullName(data.fullName || "")
+          setPhone(data.phone || "")
+          setCity(data.city || "")
+          setState(data.state || "")
+          setCountry(data.country || "")
+          setLatitude(data.latitude)
+          setLongitude(data.longitude)
+          setPhotoURL(data.photoURL || "")
+          
+          // If location already set, mark as validated
+          if (data.city && data.latitude && data.longitude) {
+            setLocationValidated(true)
+          }
         } else {
+          // Create initial user doc if it doesn't exist
           await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            email: user.email || "",
             fullName: user.displayName || "",
-            contact: user.phoneNumber || "",
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            provider: "email",
+            photoURL: user.photoURL || "",
+            createdAt: new Date().toISOString(),
           })
         }
-        // Help history
-        const q = query(collection(db, "sos_requests"), where("userId", "==", user.uid))
-        const snap = await getDocs(q)
-        setHelpHistory(
-          snap.docs
-            .map((d) => ({ ...d.data(), id: d.id } as HelpHistoryItem))
-            .sort((a, b) => {
-              const aDate = typeof a.createdAt === 'object' && a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt as string | number || 0)
-              const bDate = typeof b.createdAt === 'object' && b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt as string | number || 0)
-              return bDate.getTime() - aDate.getTime()
-            })
-        )
       } catch (e) {
         console.error("Error fetching profile:", e)
       }
       setLoading(false)
     }
+    
     fetchProfile()
   }, [user])
+
+  // Validate location using geocoding API
+  const validateLocation = useCallback(async () => {
+    if (!city.trim()) {
+      setLocationError("Please enter a city name")
+      return false
+    }
+
+    setValidatingLocation(true)
+    setLocationError(null)
+    setLocationValidated(false)
+
+    try {
+      // Build search query
+      const searchQuery = [city, state, country].filter(Boolean).join(", ")
+      
+      // Use OpenStreetMap Nominatim API for geocoding (free, no API key required)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=1`,
+        {
+          headers: {
+            "Accept-Language": "en",
+            "User-Agent": "Saviour-App"
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error("Geocoding service unavailable")
+      }
+
+      const data = await response.json()
+
+      if (data.length === 0) {
+        setLocationError("Location not found. Please check your city, state, and country.")
+        return false
+      }
+
+      const result = data[0]
+      const address = result.address || {}
+
+      // Extract location details
+      const geocodedResult: GeocodingResult = {
+        city: address.city || address.town || address.village || address.municipality || city,
+        state: address.state || address.region || state,
+        country: address.country || country,
+        latitude: parseFloat(result.lat),
+        longitude: parseFloat(result.lon)
+      }
+
+      // Update form with validated data
+      setCity(geocodedResult.city)
+      setState(geocodedResult.state)
+      setCountry(geocodedResult.country)
+      setLatitude(geocodedResult.latitude)
+      setLongitude(geocodedResult.longitude)
+      setLocationValidated(true)
+
+      return true
+    } catch (error) {
+      console.error("Geocoding error:", error)
+      setLocationError("Unable to validate location. Please try again.")
+      return false
+    } finally {
+      setValidatingLocation(false)
+    }
+  }, [city, state, country])
+
+  // Handle location change - reset validation
+  const handleLocationChange = (field: "city" | "state" | "country", value: string) => {
+    setLocationValidated(false)
+    setLocationError(null)
+    
+    switch (field) {
+      case "city":
+        setCity(value)
+        break
+      case "state":
+        setState(value)
+        break
+      case "country":
+        setCountry(value)
+        break
+    }
+  }
 
   // Save profile
   const saveProfile = async () => {
     if (!user) return
-    setSaving(true)
-    try {
-      await updateDoc(doc(db, "users", user.uid), {
-        fullName: name,
-        contact,
-        updatedAt: new Date(),
-      })
-      alert("Profile updated successfully!")
-    } catch {
-      alert("Failed to update profile. Please try again.")
-    }
-    setSaving(false)
-  }
-
-  // Change password modal
-  const handleChangePassword = async () => {
-    setModal("changePassword")
-    setModalValue("")
-    setModalError(null)
-  }
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setModalError(null)
-    if (!modalValue || modalValue.length < 6) {
-      setModalError("Password must be at least 6 characters.")
+    
+    // Validate required fields
+    if (!fullName.trim()) {
+      setLocationError("Please enter your full name")
       return
     }
+    
+    if (!city.trim()) {
+      setLocationError("Please enter your city")
+      return
+    }
+
+    // Validate location if not already validated
+    if (!locationValidated) {
+      const isValid = await validateLocation()
+      if (!isValid) return
+    }
+
+    setSaving(true)
+    setSaveSuccess(false)
+    
     try {
-      await updatePassword(auth.currentUser!, modalValue)
-      setModal(null)
-      alert("Password changed successfully.")
-    } catch (e: unknown) {
-      const err = e as { message?: string }
-      setModalError(err?.message || "Failed to change password.")
+      const updateData: Partial<UserType> = {
+        fullName,
+        phone: phone || undefined,
+        city,
+        state: state || undefined,
+        country: country || undefined,
+        latitude,
+        longitude,
+        updatedAt: new Date().toISOString(),
+      }
+      
+      await updateDoc(doc(db, "users", user.uid), updateData)
+      await refreshProfile()
+      setSaveSuccess(true)
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (error) {
+      console.error("Error saving profile:", error)
+      setLocationError("Failed to save profile. Please try again.")
+    } finally {
+      setSaving(false)
     }
   }
 
   if (loading || !user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <div className="w-full max-w-3xl space-y-6">
+        <div className="w-full max-w-2xl space-y-6">
           <Skeleton className="h-12 w-1/3 rounded-lg" />
           <div className="flex flex-col items-center gap-4">
             <Skeleton className="h-24 w-24 rounded-full" />
@@ -146,9 +242,7 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <Skeleton className="h-10 w-full rounded-lg" />
             <Skeleton className="h-10 w-full rounded-lg" />
-          </div>
-          <div className="flex gap-4">
-            <Skeleton className="h-10 w-24 rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         </div>
       </div>
@@ -157,14 +251,14 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg overflow-hidden">
           <CardHeader className="bg-indigo-600 dark:bg-indigo-800 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl">My Profile</CardTitle>
                 <CardDescription className="text-indigo-100">
-                  Manage your account settings and emergency history
+                  Manage your account information
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="text-indigo-600 dark:text-indigo-400">
@@ -173,181 +267,169 @@ export default function ProfilePage() {
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-8">
-            {/* Profile Section */}
-            <div className="space-y-6">
-              <div className="flex flex-col items-center gap-4">
-                <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-lg">
-                  <AvatarFallback className="bg-indigo-100 text-indigo-800 text-3xl">
-                    {name ? name.charAt(0).toUpperCase() : <User className="w-12 h-12" />}
-                  </AvatarFallback>
-                </Avatar>
+          <CardContent className="p-6 space-y-6">
+            {/* Profile Avatar */}
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-lg">
+                {photoURL ? (
+                  <AvatarImage src={photoURL} alt={fullName} />
+                ) : null}
+                <AvatarFallback className="bg-indigo-100 text-indigo-800 text-3xl">
+                  {fullName ? fullName.charAt(0).toUpperCase() : <User className="w-12 h-12" />}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+
+            {/* Success Message */}
+            {saveSuccess && (
+              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700">
+                <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium">Profile saved successfully!</span>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {locationError && (
+              <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <span className="text-sm">{locationError}</span>
+              </div>
+            )}
+
+            {/* Full Name */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <User className="w-4 h-4 text-indigo-600" />
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+                className="h-12 bg-white dark:bg-gray-800"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Phone className="w-4 h-4 text-indigo-600" />
+                Contact Number
+              </label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter your phone number"
+                type="tel"
+                className="h-12 bg-white dark:bg-gray-800"
+              />
+            </div>
+
+            {/* Location Section */}
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Globe className="w-5 h-5 text-indigo-600" />
+                Location Information
+              </h3>
+              <p className="text-sm text-gray-500">
+                Enter your city and optionally state/country for accurate location services.
+              </p>
+
+              {/* City */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <MapPin className="w-4 h-4 text-indigo-600" />
+                  City <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={city}
+                  onChange={(e) => handleLocationChange("city", e.target.value)}
+                  placeholder="Enter your city"
+                  className="h-12 bg-white dark:bg-gray-800"
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Full Name
-                  </label>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your full name"
-                    className="bg-white dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Contact Number
-                  </label>
-                  <Input
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="Phone number"
-                    className="bg-white dark:bg-gray-800"
-                  />
-                </div>
+              {/* State */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  State / Region
+                </label>
+                <Input
+                  value={state}
+                  onChange={(e) => handleLocationChange("state", e.target.value)}
+                  placeholder="Enter your state or region"
+                  className="h-12 bg-white dark:bg-gray-800"
+                />
               </div>
 
+              {/* Country */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Country
+                </label>
+                <Input
+                  value={country}
+                  onChange={(e) => handleLocationChange("country", e.target.value)}
+                  placeholder="Enter your country"
+                  className="h-12 bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              {/* Validate Location Button */}
               <Button
-                onClick={saveProfile}
-                disabled={saving}
-                className="w-full py-6 text-lg font-bold shadow-lg"
+                type="button"
+                variant="outline"
+                onClick={validateLocation}
+                disabled={validatingLocation || !city.trim()}
+                className="w-full h-12"
               >
-                {saving ? (
-                  <div className="flex items-center gap-2">
+                {validatingLocation ? (
+                  <span className="flex items-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Saving...
-                  </div>
+                    Validating Location...
+                  </span>
+                ) : locationValidated ? (
+                  <span className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Location Validated
+                  </span>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <Save className="w-5 h-5" />
-                    Save Profile
-                  </div>
+                  <span className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Validate Location
+                  </span>
                 )}
               </Button>
-            </div>
 
-            <Separator className="my-6" />
-
-            {/* Reset Password Section */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Key className="w-5 h-5 text-indigo-600" />
-                Account Security
-              </h3>
-
-              <Button
-                variant="outline"
-                className="w-full flex items-center justify-between p-4 h-auto"
-                onClick={handleChangePassword}
-              >
-                <div className="flex items-center gap-3">
-                  <Key className="w-5 h-5 text-indigo-600" />
-                  <div className="text-left">
-                    <div className="font-medium">Reset Password</div>
-                    <div className="text-sm text-gray-500">Update your login credentials</div>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </Button>
-            </div>
-
-            <Separator className="my-6" />
-
-            {/* Help History Section */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <HeartPulse className="w-5 h-5 text-indigo-600" />
-                Emergency History
-              </h3>
-
-              {helpHistory.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <Timer className="w-10 h-10 text-gray-400 mb-3" />
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300">No emergency requests yet</h4>
-                  <p className="text-sm text-gray-500 max-w-md mt-1">
-                    Your past emergency alerts will appear here when you use the SOS feature.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {helpHistory.map((item) => (
-                    <Card key={item.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{item.emergencyType || "Emergency"}</span>
-                              {item.status && (
-                                <Badge
-                                  variant={
-                                    item.status === "active"
-                                      ? "destructive"
-                                      : item.status === "resolved"
-                                      ? "default"
-                                      : "outline"
-                                  }
-                                >
-                                  {item.status}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="text-sm text-gray-500 mt-1">
-                              {typeof item.createdAt === 'object' && item.createdAt?.toDate
-                                ? item.createdAt.toDate().toLocaleString()
-                                : item.createdAt?.toString() || "N/A"}
-                            </div>
-                          </div>
-                        </div>
-                        {item.description && (
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
-                            {item.description}
-                          </p>
-                        )}
-                        {typeof item.latitude === "number" && typeof item.longitude === "number" && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
-                            <MapPin className="w-3 h-3" />
-                            {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              {/* Show coordinates if validated */}
+              {locationValidated && latitude && longitude && (
+                <p className="text-xs text-gray-500 text-center">
+                  Coordinates: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                </p>
               )}
             </div>
+
+            {/* Save Button */}
+            <Button
+              onClick={saveProfile}
+              disabled={saving || !fullName.trim() || !city.trim()}
+              className="w-full h-14 text-lg font-bold shadow-lg bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700"
+            >
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Saving...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="w-5 h-5" />
+                  Save Profile
+                </span>
+              )}
+            </Button>
           </CardContent>
         </Card>
       </div>
-
-      {/* Password Change Modal */}
-      <Dialog open={modal === "changePassword"} onOpenChange={(open) => !open && setModal(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
-            <DialogDescription>
-              Enter your new password (minimum 6 characters)
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <Input
-              type="password"
-              placeholder="New password"
-              value={modalValue}
-              onChange={(e) => setModalValue(e.target.value)}
-              autoFocus
-            />
-            {modalError && <div className="text-red-500 text-sm">{modalError}</div>}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setModal(null)}>
-                Cancel
-              </Button>
-              <Button type="submit">Update Password</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Bell, AlertTriangle, CheckCircle, TrendingUp, Map, Book, Users as Community, Plus, Heart, X, BarChart } from 'lucide-react'
+import { Bell, AlertTriangle, CheckCircle, TrendingUp, Map, Book, Users as Community, Plus, Heart, X, BarChart, Loader2, MapPin } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { auth } from "@/lib/firebase"
 import { db } from "@/lib/firebase"
-import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
+import { collection, query, where, getDocs } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import { Badge } from "@/components/ui/badge"
@@ -16,46 +15,29 @@ import { Skeleton } from "@/components/ui/skeleton"
 import FirstAidTutorial from "@/components/Safety/First-Aid-Tutorial"
 import FloodSafety from "@/components/Safety/Flood-Safety"
 import EarthquakeSafety from "@/components/Safety/Earthquake-Safety"
-
-interface UserProfile {
-  fullName?: string
-  photoUrl?: string
-  email?: string
-}
+import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
 
 interface WeatherData {
-  main?: {
-    temp?: number
-    humidity?: number
+  main: {
+    temp: number
+    feels_like: number
+    humidity: number
   }
-  weather?: Array<{ main?: string; description?: string }>
+  weather: Array<{ main: string; description: string }>
+  wind: { speed: number }
+  name: string
 }
 
 export default function Dashboard() {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const { userCity, loading: userLoading } = useUserCity()
   const [weather, setWeather] = useState<WeatherData | null>(null)
+  const [weatherLoading, setWeatherLoading] = useState(true)
+  const [weatherError, setWeatherError] = useState<string | null>(null)
   const [sosRaised, setSosRaised] = useState(0)
   const [helpProvided, setHelpProvided] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [notificationsCount] = useState(0) // Reserved for future notification features
+  const [notificationsCount] = useState(0)
   const [openPopup, setOpenPopup] = useState<string | null>(null)
   const router = useRouter()
-
-  // Fetch user profile from Firestore
-  const fetchUserProfile = async (uid: string) => {
-    try {
-      const userRef = doc(db, "users", uid)
-      const userSnap = await getDoc(userRef)
-      if (userSnap.exists()) {
-        setProfile(userSnap.data() as UserProfile)
-      } else {
-        setProfile(null)
-      }
-    } catch {
-      setProfile(null)
-    }
-  }
 
   // Fetch SOS stats
   const fetchSosStats = async (uid: string) => {
@@ -80,85 +62,46 @@ export default function Dashboard() {
     }
   }
 
-  // Fetch weather using OpenWeatherMap API
-  const fetchWeather = async (coords: { latitude: number; longitude: number }) => {
-    const apiKey = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY || ""
-    try {
-      const weatherResp = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${coords.latitude}&lon=${coords.longitude}&units=metric&appid=${apiKey}`
-      )
-      setWeather(weatherResp.data)
-    } catch (err) {
-      console.error("Weather API error:", err)
-      setWeather(null)
-    }
-  }
-
-  // We don't need this separate function anymore as we're using direct geolocation in useEffect
-
+  // Fetch weather using user's profile location
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      
-      // Wait for auth to be ready
-      const user = auth.currentUser
-      if (!user) {
-        // Auth not ready yet, wait for auth state
-        const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-          if (firebaseUser) {
-            unsubscribe()
-            await initializeDashboard(firebaseUser.uid)
-          }
-        })
-        return
-      }
-      
-      await initializeDashboard(user.uid)
+    if (userLoading) return
+    
+    const coords = getUserCoordinates(userCity)
+    if (!coords) {
+      setWeatherLoading(false)
+      setWeatherError("Please set your city in your profile to see weather data.")
+      return
     }
 
-    const initializeDashboard = async (uid: string) => {
-      // Run these operations in parallel
-      const userProfilePromise = fetchUserProfile(uid)
-      const sosStatsPromise = fetchSosStats(uid)
-      
-      // Start location fetch immediately
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const coords = {
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-            }
-            setLocation(coords)
-            
-            // Store location in background, don't wait for it
-            const weatherRef = doc(db, "weather", uid)
-            setDoc(weatherRef, {
-              latitude: coords.latitude,
-              longitude: coords.longitude,
-              lastLocationUpdate: new Date(),
-            }).catch(e => console.error("Error saving location:", e))
-            
-            // Fetch weather with the coordinates
-            fetchWeather(coords)
-          },
-          (err) => {
-            console.error("Geolocation error:", err)
-            setLocation(null)
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    const fetchWeather = async () => {
+      setWeatherLoading(true)
+      setWeatherError(null)
+      const apiKey = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY || ""
+      try {
+        const weatherResp = await axios.get<WeatherData>(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${coords.latitude}&lon=${coords.longitude}&units=metric&appid=${apiKey}`
         )
+        setWeather(weatherResp.data)
+      } catch (err) {
+        console.error("Weather API error:", err)
+        setWeatherError("Could not fetch weather data. Please try again later.")
+        setWeather(null)
+      } finally {
+        setWeatherLoading(false)
       }
-      
-      // Wait for these to complete before removing loading state
-      await Promise.all([userProfilePromise, sosStatsPromise])
-      setLoading(false)
     }
 
-    loadData()
-  }, [])
+    fetchWeather()
+  }, [userCity, userLoading])
 
-  if (loading) {
+  // Fetch SOS stats when user is loaded
+  useEffect(() => {
+    if (userCity.uid) {
+      fetchSosStats(userCity.uid)
+    }
+  }, [userCity.uid])
+
+  if (userLoading) {
     return (
       <div className="min-h-screen p-6 space-y-6">
         <div className="flex justify-between items-center">
@@ -182,17 +125,6 @@ export default function Dashboard() {
               <Skeleton className="h-[120px] w-full rounded-lg" />
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Skeleton className="h-6 w-[150px]" />
-              <Skeleton className="h-6 w-[60px]" />
-            </div>
-            <div className="flex gap-4">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-[120px] w-full rounded-lg" />
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     )
@@ -211,36 +143,18 @@ export default function Dashboard() {
       icon: <CheckCircle className="h-5 w-5 text-green-500" />, 
       description: "Learn essential first aid steps",
       key: "firstAid",
-      component: (
-        <FirstAidTutorial
-          open={openPopup === "firstAid"}
-          onClose={() => setOpenPopup(null)}
-        />
-      )
     },
     { 
       title: "Flood Safety", 
       icon: <AlertTriangle className="h-5 w-5 text-blue-500" />, 
       description: "Flood safety rules & video",
       key: "floodSafety",
-      component: (
-        <FloodSafety
-          open={openPopup === "floodSafety"}
-          onClose={() => setOpenPopup(null)}
-        />
-      )
     },
     { 
       title: "Earthquake Safety", 
       icon: <TrendingUp className="h-5 w-5 text-yellow-500" />, 
       description: "Earthquake safety rules & video",
       key: "earthquakeSafety",
-      component: (
-        <EarthquakeSafety
-          open={openPopup === "earthquakeSafety"}
-          onClose={() => setOpenPopup(null)}
-        />
-      )
     },
   ]
 
@@ -257,7 +171,7 @@ export default function Dashboard() {
       <div className="flex justify-between items-center">
         <div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {greeting()}{profile?.fullName ? `, ${profile.fullName}` : ""}
+            {greeting()}{userCity.fullName ? `, ${userCity.fullName}` : ""}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
         </div>
@@ -271,9 +185,9 @@ export default function Dashboard() {
             )}
           </Button>
           <Avatar>
-            <AvatarImage src={profile?.photoUrl} />
+            <AvatarImage src={userCity.photoURL || undefined} />
             <AvatarFallback>
-              {profile?.fullName ? profile.fullName.charAt(0).toUpperCase() : "U"}
+              {userCity.fullName ? userCity.fullName.charAt(0).toUpperCase() : "U"}
             </AvatarFallback>
           </Avatar>
         </div>
@@ -286,14 +200,18 @@ export default function Dashboard() {
             <BarChart className="h-5 w-5" />
             Current Weather
           </CardTitle>
-          <CardDescription className="text-indigo-100">
-            {location ? 
-              `Location: ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 
-              "Location unavailable"}
+          <CardDescription className="text-indigo-100 flex items-center gap-1">
+            <MapPin className="h-4 w-4" />
+            {userCity.city ? `${userCity.city}${userCity.state ? `, ${userCity.state}` : ""}` : "Location not set"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {weather ? (
+          {weatherLoading ? (
+            <div className="flex items-center gap-3 py-4">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="text-lg">Loading weather information...</span>
+            </div>
+          ) : weather ? (
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-4xl font-bold mb-1">{Math.round(weather.main.temp)}°C</div>
@@ -310,11 +228,11 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            <Alert variant="destructive">
+            <Alert className="bg-white/10 border-white/20 text-white">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Weather Unavailable</AlertTitle>
               <AlertDescription>
-                Could not fetch weather data for your location
+                {weatherError || "Could not fetch weather data"}
               </AlertDescription>
             </Alert>
           )}

@@ -12,6 +12,7 @@ import dynamic from "next/dynamic"
 import SOSEditModal from "@/components/Modals/SOSEditModal"
 import { AlertTriangle } from "lucide-react"
 import type { User } from "firebase/auth"
+import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
 
 const EMERGENCY_TYPES = [
   "All",
@@ -64,6 +65,7 @@ const MapWrapper = dynamic(() => import('@/components/MapWrapper'), {
 
 export default function NavigationPage() {
   const router = useRouter()
+  const { userCity, loading: userLoading } = useUserCity()
   const [user, setUser] = useState<User | null>(null)
   const [sosRequests, setSosRequests] = useState<SOSRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -99,15 +101,15 @@ export default function NavigationPage() {
     return () => unsub()
   }, [])
 
-  // Get user location for map center
+  // Set map center from user profile location
   useEffect(() => {
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setMapCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {}
-      )
+    if (!userLoading) {
+      const coords = getUserCoordinates(userCity)
+      if (coords) {
+        setMapCenter({ lat: coords.latitude, lng: coords.longitude })
+      }
     }
-  }, [])
+  }, [userCity, userLoading])
 
   // Filtering
   const filteredSOS = sosRequests.filter((sos) =>

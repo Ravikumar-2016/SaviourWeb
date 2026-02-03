@@ -1,14 +1,13 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { MapPin, Sun, CloudRain, Wind, Droplet, Sunrise, Sunset, Loader2 } from "lucide-react"
-import { auth } from "@/lib/firebase"
+import { MapPin, Sun, CloudRain, Wind, Droplet, Sunrise, Sunset, Loader2, RefreshCw } from "lucide-react"
 import Image from "next/image"
-import { useIsClient } from "usehooks-ts"
+import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
+import Link from "next/link"
 
 const OPEN_WEATHER_API_KEY = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY
 
@@ -28,6 +27,8 @@ interface DailyWeather {
   pop?: number
   humidity: number
   wind_speed: number
+  rain?: number
+  snow?: number
 }
 
 interface CurrentWeather {
@@ -84,78 +85,15 @@ function formatDate(ts: number) {
 }
 
 export default function WeatherPage() {
-  const isClient = useIsClient()
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null)
-  const [place, setPlace] = useState<string | null>(null)
+  const { userCity, loading: userLoading, isProfileComplete } = useUserCity()
+  const [weatherLoading, setWeatherLoading] = useState(true)
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [, setRefreshing] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Auth check
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) router.push("/auth/login")
-    })
-    return () => unsubscribe()
-  }, [router])
-
-  // Fetch location
-  const fetchCoords = useCallback(async () => {
-    setError(null)
-    setPlace(null)
-    if (!("geolocation" in navigator)) {
-      setError("Geolocation not supported.")
-      setCoords(null)
-      return
-    }
-    try {
-      await new Promise<void>((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            setCoords({
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-            })
-            // Reverse geocode
-            try {
-              const resp = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
-              )
-              const data = await resp.json()
-              setPlace(
-                data.address?.city ||
-                data.address?.town ||
-                data.address?.village ||
-                data.address?.state ||
-                data.address?.country ||
-                "Unknown"
-              )
-            } catch {
-              setPlace("Unknown")
-            }
-            resolve()
-          },
-          () => {
-            setError("Location permission denied.")
-            setCoords(null)
-            setPlace(null)
-            resolve()
-          },
-          { enableHighAccuracy: true }
-        )
-      })
-    } catch {
-      setError("Failed to fetch device location.")
-      setCoords(null)
-      setPlace(null)
-    }
-  }, [])
-
-  // Fetch weather
+  // Fetch weather using user's profile location
   const fetchWeather = useCallback(async (lat: number, lon: number) => {
-    setLoading(true)
+    setWeatherLoading(true)
     setError(null)
     try {
       const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=metric&exclude=minutely,alerts&appid=${OPEN_WEATHER_API_KEY}`
@@ -166,68 +104,100 @@ export default function WeatherPage() {
       setError(null)
     } catch {
       setWeather(null)
-      setError("Failed to fetch weather data.")
+      setError("Failed to fetch weather data. Please try again.")
     } finally {
-      setLoading(false)
+      setWeatherLoading(false)
     }
   }, [])
 
-  // Initial load
-  const loadAll = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    setWeather(null)
-    setCoords(null)
-    setPlace(null)
-    await fetchCoords()
-  }, [fetchCoords])
-
+  // Load weather when user data is available
   useEffect(() => {
-    if (isClient) {
-      loadAll()
-    }
-  }, [isClient, loadAll])
-
-  useEffect(() => {
-    if (coords && typeof coords.latitude === "number" && typeof coords.longitude === "number") {
+    if (userLoading) return
+    
+    const coords = getUserCoordinates(userCity)
+    if (coords) {
       fetchWeather(coords.latitude, coords.longitude)
+    } else {
+      setWeatherLoading(false)
+      setError("Please set your city in your profile to view weather data.")
     }
-  }, [coords, fetchWeather])
+  }, [userCity, userLoading, fetchWeather])
 
   const onRefresh = async () => {
     setRefreshing(true)
-    setError(null)
-    await loadAll()
+    const coords = getUserCoordinates(userCity)
+    if (coords) {
+      await fetchWeather(coords.latitude, coords.longitude)
+    }
     setRefreshing(false)
   }
 
   // Loading UI
-  if (!isClient || loading) {
+  if (userLoading || weatherLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Progress value={70} className="w-1/2 mb-4" />
         <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
-        <span className="text-lg text-indigo-700">Loading Weather Data...</span>
+        <span className="text-lg text-indigo-700">Loading weather data...</span>
+        {userCity.city && (
+          <span className="text-sm text-gray-500 mt-2">
+            Fetching weather for {userCity.city}
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  // No city set - prompt to set profile
+  if (!isProfileComplete || !userCity.city) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MapPin className="h-8 w-8 text-indigo-600" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Set Your Location</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Please set your city in your profile to view weather information for your area.
+          </p>
+          <Button asChild>
+            <Link href="/dashboard/profile">Update Profile</Link>
+          </Button>
+        </div>
       </div>
     )
   }
 
   // Error UI
-  if (error || !coords) {
+  if (error || !weather) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <span className="text-red-500 text-lg mb-2">{error || "No coordinates found."}</span>
-        <Button onClick={onRefresh} className="mt-2">Refresh</Button>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md text-center">
+          <span className="text-red-500 text-lg mb-4 block">{error || "Weather data not available."}</span>
+          <Button onClick={onRefresh} disabled={refreshing}>
+            {refreshing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     )
   }
 
   // Defensive check for weather data
-  if (!weather || !weather.current || !weather.hourly || !weather.daily) {
+  if (!weather.current || !weather.hourly || !weather.daily) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <span className="text-red-500 text-lg mb-2">
-          Weather data not available. Please refresh.
+          Weather data incomplete. Please refresh.
         </span>
         <Button onClick={onRefresh} className="mt-2">Refresh</Button>
       </div>
@@ -236,23 +206,39 @@ export default function WeatherPage() {
 
   // Main UI
   const gradientClass = getWeatherGradient(weather.current.weather[0].main)
+  const coords = getUserCoordinates(userCity)
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-2">
       <div className="max-w-3xl mx-auto">
+        {/* Current Weather Card */}
         <Card className={`mb-8 shadow-lg overflow-hidden ${gradientClass}`}>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl font-bold text-white">Weather Forecast</CardTitle>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onRefresh} 
+              disabled={refreshing}
+              className="text-white hover:bg-white/20"
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="w-5 h-5 text-white" />
-                  <span className="font-semibold text-white">{place || "Fetching location..."}</span>
+                  <span className="font-semibold text-white">
+                    {userCity.city}{userCity.state ? `, ${userCity.state}` : ""}{userCity.country ? `, ${userCity.country}` : ""}
+                  </span>
                 </div>
-                <div className="text-white text-sm mb-2">
-                  Lat: {coords.latitude.toFixed(4)}, Lon: {coords.longitude.toFixed(4)}
-                </div>
+                {coords && (
+                  <div className="text-white text-sm mb-2 opacity-80">
+                    Lat: {coords.latitude.toFixed(4)}, Lon: {coords.longitude.toFixed(4)}
+                  </div>
+                )}
                 <div className="text-5xl font-bold text-white mb-2">
                   {Math.round(weather.current.temp)}°C
                 </div>
@@ -323,7 +309,7 @@ export default function WeatherPage() {
                     />
                   </div>
                   <div className="font-bold text-lg">{Math.round(hour.temp)}°</div>
-                  {hour.pop > 0 && (
+                  {hour.pop && hour.pop > 0 && (
                     <div className="flex items-center gap-1 text-blue-500 text-xs">
                       <CloudRain className="w-4 h-4" />
                       {Math.round(hour.pop * 100)}%
@@ -363,8 +349,12 @@ export default function WeatherPage() {
                     </div>
                     <div className="flex flex-col items-end">
                       <div className="flex items-center gap-2">
-                        <CloudRain className="w-4 h-4 text-blue-500" />
-                        <span className="text-blue-500 text-xs">{Math.round(day.pop * 100)}%</span>
+                        {day.pop && day.pop > 0 && (
+                          <>
+                            <CloudRain className="w-4 h-4 text-blue-500" />
+                            <span className="text-blue-500 text-xs">{Math.round(day.pop * 100)}%</span>
+                          </>
+                        )}
                         <span className="font-bold text-lg">{Math.round(day.temp.max)}° / {Math.round(day.temp.min)}°</span>
                       </div>
                       {day.rain && (
