@@ -13,6 +13,7 @@ import SOSEditModal from "@/components/Modals/SOSEditModal"
 import { AlertTriangle } from "lucide-react"
 import type { User } from "firebase/auth"
 import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
+import { useToast } from "@/hooks/use-toast"
 
 const EMERGENCY_TYPES = [
   "All",
@@ -65,6 +66,7 @@ const MapWrapper = dynamic(() => import('@/components/MapWrapper'), {
 
 export default function NavigationPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const { userCity, loading: userLoading } = useUserCity()
   const [user, setUser] = useState<User | null>(null)
   const [sosRequests, setSosRequests] = useState<SOSRequest[]>([])
@@ -154,7 +156,11 @@ export default function NavigationPage() {
       setSelectedSOS(null)
     } catch (e) {
       console.error("Error responding to SOS:", e)
-      alert("Failed to respond to SOS. Please try again later.")
+      toast({
+        title: "Error",
+        description: "Failed to respond to SOS. Please try again later.",
+        variant: "destructive",
+      })
       setSelectedSOS(null)
     }
   }

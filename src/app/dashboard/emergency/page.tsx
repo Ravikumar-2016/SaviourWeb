@@ -300,41 +300,41 @@ export default function EmergencyHelpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-4 sm:py-8 px-0 sm:px-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8">
         {/* Header */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
-            <PhoneCall className="w-8 h-8 text-red-600" />
+        <div className="text-center px-4 sm:px-0">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+            <PhoneCall className="w-7 h-7 sm:w-8 sm:h-8 text-red-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Emergency Help</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Quick access to emergency services and contacts</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Emergency Help</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">Quick access to emergency services and contacts</p>
         </div>
 
         {/* National Emergency Numbers */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
+        <Card className="border-0 shadow-lg rounded-none sm:rounded-xl">
+          <CardHeader className="pb-4 px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <AlertTriangle className="w-5 h-5 text-red-500" />
               National Emergency Numbers
             </CardTitle>
             <CardDescription>Tap to call immediately</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <CardContent className="px-4 sm:px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {NATIONAL_EMERGENCY_NUMBERS.map((emergency) => (
                 <Button
                   key={emergency.number}
                   variant="outline"
-                  className="h-auto flex-col py-6 hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                  className="h-auto flex-col py-4 sm:py-6 hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                   onClick={() => handleCall(emergency.number)}
                 >
-                  <div className={`w-12 h-12 ${emergency.color} rounded-full flex items-center justify-center mb-3`}>
-                    <emergency.icon className="w-6 h-6 text-white" />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 ${emergency.color} rounded-full flex items-center justify-center mb-2 sm:mb-3`}>
+                    <emergency.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{emergency.number}</span>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{emergency.name}</span>
-                  <span className="text-xs text-gray-500 mt-0.5">{emergency.description}</span>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{emergency.number}</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mt-1 text-center">{emergency.name}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 text-center hidden sm:block">{emergency.description}</span>
                 </Button>
               ))}
             </div>
@@ -342,46 +342,46 @@ export default function EmergencyHelpPage() {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
+        <Card className="border-0 shadow-lg rounded-none sm:rounded-xl">
+          <CardHeader className="pb-4 px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Share2 className="w-5 h-5 text-blue-500" />
               Quick Actions
             </CardTitle>
             <CardDescription>Share your location or send emergency alerts</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="px-4 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Button
                 variant="outline"
-                className="h-auto py-6 flex flex-col items-center gap-3 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                className="h-auto py-4 sm:py-6 flex flex-col items-center gap-2 sm:gap-3 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 onClick={handleShareLocation}
                 disabled={locationLoading}
               >
                 {locationLoading ? (
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                  <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-blue-500" />
                 ) : (
-                  <MapPin className="w-8 h-8 text-blue-500" />
+                  <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
                 )}
                 <div className="text-center">
-                  <p className="font-semibold text-gray-900 dark:text-white">Share My Location</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">Share My Location</p>
                   <p className="text-xs text-gray-500 mt-1">Generate & share Google Maps link</p>
                 </div>
               </Button>
               
               <Button
                 variant="outline"
-                className="h-auto py-6 flex flex-col items-center gap-3 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
+                className="h-auto py-4 sm:py-6 flex flex-col items-center gap-2 sm:gap-3 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
                 onClick={handleEmergencySMS}
                 disabled={locationLoading}
               >
                 {locationLoading ? (
-                  <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+                  <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-green-500" />
                 ) : (
-                  <MessageSquare className="w-8 h-8 text-green-500" />
+                  <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
                 )}
                 <div className="text-center">
-                  <p className="font-semibold text-gray-900 dark:text-white">Send Emergency SMS</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">Send Emergency SMS</p>
                   <p className="text-xs text-gray-500 mt-1">Pre-filled message with location</p>
                 </div>
               </Button>
@@ -390,23 +390,23 @@ export default function EmergencyHelpPage() {
         </Card>
 
         {/* Personal Emergency Contacts */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
+        <Card className="border-0 shadow-lg rounded-none sm:rounded-xl">
+          <CardHeader className="pb-4 px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <CardTitle className="flex items-center gap-2 text-xl">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Heart className="w-5 h-5 text-pink-500" />
                   Personal Emergency Contacts
                 </CardTitle>
                 <CardDescription>Your trusted contacts for emergencies</CardDescription>
               </div>
-              <Button onClick={() => setShowAddModal(true)} size="sm" className="flex items-center gap-2">
+              <Button onClick={() => setShowAddModal(true)} size="sm" className="flex items-center gap-2 w-full sm:w-auto">
                 <UserPlus className="w-4 h-4" />
                 Add Contact
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mr-3" />
@@ -427,37 +427,37 @@ export default function EmergencyHelpPage() {
                 {contacts.map((contact) => (
                   <div
                     key={contact.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors gap-4"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                         <User className="w-6 h-6 text-indigo-600" />
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">{contact.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">{contact.name}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-0.5">
                           <Badge variant="secondary" className="text-xs">{contact.relation}</Badge>
-                          <span className="text-sm text-gray-500">{contact.phone}</span>
+                          <span className="text-sm text-gray-500 truncate">{contact.phone}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-auto sm:ml-0">
                       <Button
                         size="sm"
-                        className="bg-green-500 hover:bg-green-600 text-white"
+                        className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
                         onClick={() => handleCall(contact.phone)}
                       >
-                        <Phone className="w-4 h-4 mr-1" />
-                        Call
+                        <Phone className="w-4 h-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Call</span>
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                        className="bg-blue-500 hover:bg-blue-600 text-white flex-1 sm:flex-none"
                         onClick={() => handleSendSMS(contact.phone, contact.name)}
                         disabled={locationLoading}
                       >
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        SMS
+                        <MessageSquare className="w-4 h-4 sm:mr-1" />
+                        <span className="hidden sm:inline">SMS</span>
                       </Button>
                       <Button
                         size="sm"
@@ -480,14 +480,14 @@ export default function EmergencyHelpPage() {
         </Card>
 
         {/* Safety Tips */}
-        <Card className="border-0 shadow-lg bg-amber-50 dark:bg-amber-900/20">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl text-amber-700 dark:text-amber-400">
+        <Card className="border-0 shadow-lg bg-amber-50 dark:bg-amber-900/20 rounded-none sm:rounded-xl">
+          <CardHeader className="pb-4 px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-amber-700 dark:text-amber-400">
               <Shield className="w-5 h-5" />
               Quick Safety Tips
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <ul className="space-y-2">
               {SAFETY_TIPS.map((tip, index) => (
                 <li key={index} className="flex items-start gap-3 text-amber-800 dark:text-amber-300">
