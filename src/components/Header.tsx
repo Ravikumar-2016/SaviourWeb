@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
@@ -10,6 +11,10 @@ import { auth } from "@/lib/firebase"
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [user, setUser] = useState<import("firebase/auth").User | null>(null)
+  const pathname = usePathname()
+  
+  // Check if currently on dashboard pages
+  const isOnDashboard = pathname?.startsWith("/dashboard")
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((firebaseUser) => {
@@ -68,16 +73,18 @@ export default function Header() {
             )}
             {user && (
               <>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
-                >
-                  <Link href="/dashboard">
-                    Dashboard
-                  </Link>
-                </Button>
+                {!isOnDashboard && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                  >
+                    <Link href="/dashboard">
+                      Dashboard
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   onClick={handleSignOut}
                   variant="outline"
@@ -130,17 +137,19 @@ export default function Header() {
             )}
             {user && (
               <>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Link href="/dashboard">
-                    Dashboard
-                  </Link>
-                </Button>
+                {!isOnDashboard && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link href="/dashboard">
+                      Dashboard
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
                   variant="outline"
