@@ -44,8 +44,8 @@ export function Sidebar({ onLinkClick, isMobile = false }: SidebarProps) {
     )}>
       {/* Section Label */}
       {!isMobile && (
-        <div className="px-4 py-3 border-b border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Dashboard Menu</p>
+        <div className="px-4 py-4 border-b border-gray-100">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Dashboard Menu</p>
         </div>
       )}
       

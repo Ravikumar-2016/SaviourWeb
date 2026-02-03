@@ -12,6 +12,17 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { useUserCity, getUserCoordinates } from "@/hooks/useUserCity"
 import SOSEditModal from "@/components/Modals/SOSEditModal"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type EmergencyType =
   | "Medical Emergency"
@@ -149,6 +160,8 @@ function AlertLevelPicker({
 
 export default function SOSPage() {
   const { userCity, loading: userLoading, isProfileComplete } = useUserCity()
+  const { toast } = useToast()
+  const [sosToDelete, setSosToDelete] = useState<SOSRequest | null>(null)
   const [selectedEmergencyType, setSelectedEmergencyType] = useState<EmergencyType | null>(null)
   const [selectedAlertLevel, setSelectedAlertLevel] = useState<AlertLevel>("High")
   const [description, setDescription] = useState("")
@@ -231,7 +244,11 @@ export default function SOSPage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 500 * 1024) {
-      alert("Please select an image smaller than 500KB.")
+      toast({
+        title: "Image too large",
+        description: "Please select an image smaller than 500KB.",
+        variant: "destructive",
+      })
       return
     }
     setImageFile(file)
@@ -276,11 +293,19 @@ export default function SOSPage() {
 
   const handleSendSOS = async () => {
     if (!selectedEmergencyType) {
-      alert("Please select an emergency type.")
+      toast({
+        title: "Missing information",
+        description: "Please select an emergency type.",
+        variant: "destructive",
+      })
       return
     }
     if (!profileCoords) {
-      alert("Location not available. Please set your city in your profile first.")
+      toast({
+        title: "Location not available",
+        description: "Please set your city in your profile first.",
+        variant: "destructive",
+      })
       return
     }
     
@@ -288,7 +313,11 @@ export default function SOSPage() {
     try {
       const user = auth.currentUser
       if (!user) {
-        alert("You must be logged in to send SOS.")
+        toast({
+          title: "Authentication required",
+          description: "You must be logged in to send SOS.",
+          variant: "destructive",
+        })
         setIsSending(false)
         return
       }
@@ -332,7 +361,11 @@ export default function SOSPage() {
       setCancelCountdown(5)
     } catch (e) {
       console.error("SOS submission error:", e)
-      alert("Failed to send SOS. Please try again.")
+      toast({
+        title: "Failed to send SOS",
+        description: "Please try again.",
+        variant: "destructive",
+      })
     }
     setIsSending(false)
   }
@@ -345,19 +378,36 @@ export default function SOSPage() {
     setDescription("")
     setImageFile(null)
     setImagePreview(null)
-    alert("Your SOS alert has been cancelled.")
+    toast({
+      title: "SOS Cancelled",
+      description: "Your SOS alert has been cancelled.",
+    })
   }
 
   // Delete SOS handler
   const handleDeleteSOS = async (sos: SOSRequest) => {
-    if (!confirm("Are you sure you want to delete this SOS request?")) return
+    setSosToDelete(sos)
+  }
+
+  // Confirm delete SOS
+  const confirmDeleteSOS = async () => {
+    if (!sosToDelete) return
     try {
-      await deleteDoc(doc(db, "sos_requests", sos.id))
+      await deleteDoc(doc(db, "sos_requests", sosToDelete.id))
       setSelectedSOS(null)
+      toast({
+        title: "SOS Deleted",
+        description: "Your SOS request has been deleted.",
+      })
     } catch (e) {
       console.error("Error deleting SOS:", e)
-      alert("Failed to delete SOS. Please try again.")
+      toast({
+        title: "Failed to delete",
+        description: "Failed to delete SOS. Please try again.",
+        variant: "destructive",
+      })
     }
+    setSosToDelete(null)
   }
 
   // Update SOS handler
@@ -802,6 +852,24 @@ export default function SOSPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!sosToDelete} onOpenChange={(open) => !open && setSosToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete SOS Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this SOS request? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteSOS} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

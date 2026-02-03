@@ -3,7 +3,7 @@
 import { ReactNode, useState } from 'react'
 import { Sidebar } from '@/components/Sidebar'
 import { useResponsive } from '@/hooks/useResponsive'
-import { Menu, X, User, LogOut, Home, Globe, Info, Briefcase, Mail } from 'lucide-react'
+import { Menu, X, User, LogOut, Home, Globe, Info, Briefcase, Mail, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -34,56 +34,56 @@ function MobileHeader() {
 
   return (
     <>
-      <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-4 py-3 sticky top-0 z-40 shadow-sm">
-        <div className="flex items-center justify-between">
+      <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-3 py-4 sticky top-0 z-40 shadow-sm">
+        <div className="flex items-center justify-between h-11">
           {/* Left - Hamburger Menu */}
-          <div className="w-10 flex justify-start">
+          <div className="w-12 flex justify-start">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="h-10 w-10 hover:bg-blue-50"
+              className="h-11 w-11 hover:bg-blue-50"
             >
-              <Menu className="h-5 w-5 text-gray-700" />
+              <Menu className="h-6 w-6 text-gray-700" />
             </Button>
           </div>
           
-          {/* Center - Logo */}
+          {/* Center - Logo (larger) */}
           <Link href="/dashboard" className="flex items-center justify-center flex-1">
-            <Image src="/Saviour.png" alt="SAVIOUR" width={130} height={32} priority />
+            <Image src="/Saviour.png" alt="SAVIOUR" width={160} height={40} priority className="h-9 w-auto" />
           </Link>
 
           {/* Right - Navigation & Profile Icons */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {/* Navigation Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50">
-                  <Globe className="h-5 w-5 text-gray-600" />
+                <Button variant="ghost" size="icon" className="h-11 w-11 hover:bg-blue-50">
+                  <Globe className="h-6 w-6 text-gray-600" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/" className="flex items-center cursor-pointer">
-                    <Home className="mr-2 h-4 w-4" />
+                  <Link href="/" className="flex items-center cursor-pointer py-2">
+                    <Home className="mr-3 h-5 w-5" />
                     Home
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/about" className="flex items-center cursor-pointer">
-                    <Info className="mr-2 h-4 w-4" />
+                  <Link href="/about" className="flex items-center cursor-pointer py-2">
+                    <Info className="mr-3 h-5 w-5" />
                     About
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/services" className="flex items-center cursor-pointer">
-                    <Briefcase className="mr-2 h-4 w-4" />
+                  <Link href="/services" className="flex items-center cursor-pointer py-2">
+                    <Briefcase className="mr-3 h-5 w-5" />
                     Services
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/contact" className="flex items-center cursor-pointer">
-                    <Mail className="mr-2 h-4 w-4" />
+                  <Link href="/contact" className="flex items-center cursor-pointer py-2">
+                    <Mail className="mr-3 h-5 w-5" />
                     Contact
                   </Link>
                 </DropdownMenuItem>
@@ -93,22 +93,22 @@ function MobileHeader() {
             {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
+                <Button variant="ghost" size="icon" className="h-11 w-11 hover:bg-blue-50">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+                    <User className="h-5 w-5 text-white" />
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile" className="flex items-center cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
+                  <Link href="/dashboard/profile" className="flex items-center cursor-pointer py-2">
+                    <User className="mr-3 h-5 w-5" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer py-2">
+                  <LogOut className="mr-3 h-5 w-5" />
                   Log Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -159,52 +159,73 @@ function DesktopNavbar() {
   }
 
   return (
-    <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-6 py-3 sticky top-0 z-50 shadow-sm">
-      <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
-        {/* Left - Logo */}
-        <Link href="/dashboard" className="flex items-center">
-          <Image src="/Saviour.png" alt="SAVIOUR" width={140} height={35} priority />
+    <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-6 py-4 sticky top-0 z-50 shadow-sm">
+      <div className="flex items-center justify-between max-w-screen-2xl mx-auto h-12">
+        {/* Left - Logo with larger text */}
+        <Link href="/dashboard" className="flex items-center gap-2 min-w-[180px]">
+          <Image src="/Saviour.png" alt="SAVIOUR" width={160} height={40} priority className="h-10 w-auto" />
         </Link>
 
-        {/* Center - Navigation Links */}
-        <nav className="flex items-center gap-8">
-          <Link href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+        {/* Center - Navigation Links with tighter spacing */}
+        <nav className="flex items-center justify-center gap-6">
+          <Link 
+            href="/" 
+            className="text-[15px] font-medium text-gray-600 hover:text-blue-600 transition-colors relative py-2 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center"
+          >
             Home
           </Link>
-          <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+          <Link 
+            href="/about" 
+            className="text-[15px] font-medium text-gray-600 hover:text-blue-600 transition-colors relative py-2 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center"
+          >
             About
           </Link>
-          <Link href="/services" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+          <Link 
+            href="/services" 
+            className="text-[15px] font-medium text-gray-600 hover:text-blue-600 transition-colors relative py-2 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center"
+          >
             Services
           </Link>
-          <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+          <Link 
+            href="/contact" 
+            className="text-[15px] font-medium text-gray-600 hover:text-blue-600 transition-colors relative py-2 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-center"
+          >
             Contact
           </Link>
         </nav>
 
-        {/* Right - Profile Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <User className="h-5 w-5 text-white" />
-              </div>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/profile" className="flex items-center cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" />
-              Log Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Right - Notification & Profile */}
+        <div className="flex items-center gap-2 min-w-[180px] justify-end">
+          {/* Notification Bell */}
+          <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50 relative">
+            <Bell className="h-5 w-5 text-gray-600" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
+          </Button>
+
+          {/* Profile Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-blue-50">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/profile" className="flex items-center cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                Log Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   )
