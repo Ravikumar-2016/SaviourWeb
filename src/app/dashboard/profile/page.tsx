@@ -180,16 +180,27 @@ export default function ProfilePage() {
       setLatitude(geocodedResult.latitude)
       setLongitude(geocodedResult.longitude)
       setLocationValidated(true)
+      
+      toast({
+        variant: "success",
+        title: "✅ Location Validated!",
+        description: `Found: ${geocodedResult.city}, ${geocodedResult.state || ''} ${geocodedResult.country || ''}`.trim(),
+      })
 
       return true
     } catch (error) {
       console.error("Geocoding error:", error)
       setLocationError("Unable to validate location. Please try again.")
+      toast({
+        variant: "destructive",
+        title: "Location Not Found",
+        description: "Please check your city name and try again.",
+      })
       return false
     } finally {
       setValidatingLocation(false)
     }
-  }, [city, state, country])
+  }, [city, state, country, toast])
 
   // Handle location change - reset validation
   const handleLocationChange = (field: "city" | "state" | "country", value: string) => {
@@ -232,21 +243,14 @@ export default function ProfilePage() {
       return
     }
 
-    // Validate location if not already validated
+    // Location must be validated before saving
     if (!locationValidated) {
       toast({
-        title: "Validating Location",
-        description: "Please wait while we verify your location...",
+        variant: "warning",
+        title: "Location Not Validated",
+        description: "Please click 'Validate Location' button to verify your location before saving.",
       })
-      const isValid = await validateLocation()
-      if (!isValid) {
-        toast({
-          variant: "destructive",
-          title: "Location Validation Failed",
-          description: "Please check your city name and try again.",
-        })
-        return
-      }
+      return
     }
 
     setSaving(true)
@@ -509,13 +513,18 @@ export default function ProfilePage() {
             {/* Save Button */}
             <Button
               onClick={saveProfile}
-              disabled={saving || !fullName.trim() || !city.trim()}
-              className="w-full h-14 text-lg font-bold shadow-lg bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700"
+              disabled={saving || !fullName.trim() || !city.trim() || !locationValidated}
+              className="w-full h-14 text-lg font-bold shadow-lg bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Saving...
+                </span>
+              ) : !locationValidated ? (
+                <span className="flex items-center gap-2 text-gray-400">
+                  <AlertTriangle className="w-5 h-5" />
+                  Validate Location First
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -524,6 +533,14 @@ export default function ProfilePage() {
                 </span>
               )}
             </Button>
+            
+            {/* Hint message when save is disabled */}
+            {!locationValidated && city.trim() && (
+              <p className="text-center text-sm text-amber-600 flex items-center justify-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Please click &quot;Validate Location&quot; button above to enable saving
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
