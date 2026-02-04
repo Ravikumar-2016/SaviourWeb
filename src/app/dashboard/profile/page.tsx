@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MapPin, Save, User, Phone, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react"
+import { MapPin, Save, User, Phone, Loader2, CheckCircle2, AlertCircle, Globe, AlertTriangle, Info } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
 import type { User as UserType } from "@/types/user"
 
 interface GeocodingResult {
@@ -28,7 +29,7 @@ export default function ProfilePage() {
   const [validatingLocation, setValidatingLocation] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [locationValidated, setLocationValidated] = useState(false)
-  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false)
   
   // Form fields
   const [fullName, setFullName] = useState("")
@@ -42,6 +43,7 @@ export default function ProfilePage() {
   
   const { user, refreshProfile } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   // Auth state and redirect if not logged in
   useEffect(() => {
@@ -76,24 +78,50 @@ export default function ProfilePage() {
           if (data.city && data.latitude && data.longitude) {
             setLocationValidated(true)
           }
+          
+          // Check if this is first time user (no city set)
+          if (!data.city) {
+            setIsFirstTimeUser(true)
+            toast({
+              variant: "warning",
+              title: "⚠️ Complete Your Profile",
+              description: "Please add your city information to access all dashboard features.",
+            })
+          }
         } else {
-          // Create initial user doc if it doesn't exist
-          await setDoc(doc(db, "users", user.uid), {
+          // Create initial user doc if it doesn't exist - this is a first time user
+          setIsFirstTimeUser(true)
+          const initialData = {
             uid: user.uid,
             email: user.email || "",
             fullName: user.displayName || "",
             provider: "email",
             photoURL: user.photoURL || "",
             createdAt: new Date().toISOString(),
+          }
+          await setDoc(doc(db, "users", user.uid), initialData)
+          setFullName(user.displayName || "")
+          setPhotoURL(user.photoURL || "")
+          
+          toast({
+            variant: "warning",
+            title: "👋 Welcome to Saviour!",
+            description: "Please complete your profile with city information to unlock all features.",
           })
         }
       } catch (e) {
         console.error("Error fetching profile:", e)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load profile. Please refresh the page.",
+        })
       }
       setLoading(false)
     }
     
     fetchProfile()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // Validate location using geocoding API
@@ -187,23 +215,41 @@ export default function ProfilePage() {
     
     // Validate required fields
     if (!fullName.trim()) {
-      setLocationError("Please enter your full name")
+      toast({
+        variant: "destructive",
+        title: "Full Name Required",
+        description: "Please enter your full name to continue.",
+      })
       return
     }
     
     if (!city.trim()) {
-      setLocationError("Please enter your city")
+      toast({
+        variant: "destructive",
+        title: "City Required",
+        description: "City information is mandatory to access dashboard features.",
+      })
       return
     }
 
     // Validate location if not already validated
     if (!locationValidated) {
+      toast({
+        title: "Validating Location",
+        description: "Please wait while we verify your location...",
+      })
       const isValid = await validateLocation()
-      if (!isValid) return
+      if (!isValid) {
+        toast({
+          variant: "destructive",
+          title: "Location Validation Failed",
+          description: "Please check your city name and try again.",
+        })
+        return
+      }
     }
 
     setSaving(true)
-    setSaveSuccess(false)
     
     try {
       const updateData: Partial<UserType> = {
@@ -217,15 +263,43 @@ export default function ProfilePage() {
         updatedAt: new Date().toISOString(),
       }
       
-      await updateDoc(doc(db, "users", user.uid), updateData)
-      await refreshProfile()
-      setSaveSuccess(true)
+      // Use setDoc with merge for first-time users to ensure document exists
+      if (isFirstTimeUser) {
+        await setDoc(doc(db, "users", user.uid), {
+          ...updateData,
+          uid: user.uid,
+          email: user.email || "",
+          provider: "email",
+          photoURL: photoURL || user.photoURL || "",
+        }, { merge: true })
+      } else {
+        await updateDoc(doc(db, "users", user.uid), updateData)
+      }
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000)
+      await refreshProfile()
+      setIsFirstTimeUser(false)
+      
+      toast({
+        variant: "success",
+        title: "✅ Profile Saved Successfully!",
+        description: isFirstTimeUser 
+          ? "Welcome! You now have full access to all dashboard features."
+          : "Your profile information has been updated.",
+      })
+      
+      // Redirect to dashboard after first-time profile completion
+      if (isFirstTimeUser) {
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 1500)
+      }
     } catch (error) {
       console.error("Error saving profile:", error)
-      setLocationError("Failed to save profile. Please try again.")
+      toast({
+        variant: "destructive",
+        title: "Failed to Save Profile",
+        description: "Something went wrong. Please try again.",
+      })
     } finally {
       setSaving(false)
     }
@@ -268,6 +342,20 @@ export default function ProfilePage() {
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">
+            {/* First Time User Warning Banner */}
+            {isFirstTimeUser && (
+              <div className="flex items-start gap-3 p-4 bg-amber-50 border-2 border-amber-300 rounded-xl">
+                <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-amber-800">Complete Your Profile to Continue</h4>
+                  <p className="text-sm text-amber-700">
+                    <strong>City information is mandatory</strong> to access all dashboard features including weather alerts, 
+                    community chat, and emergency services. Please fill in at least your <strong>Full Name</strong> and <strong>City</strong> to unlock the dashboard.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Profile Avatar */}
             <div className="flex flex-col items-center gap-4">
               <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-lg">
@@ -280,13 +368,11 @@ export default function ProfilePage() {
               </Avatar>
             </div>
 
-            {/* Success Message */}
-            {saveSuccess && (
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700">
-                <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium">Profile saved successfully!</span>
-              </div>
-            )}
+            {/* Info Message for Required Fields */}
+            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+              <Info className="h-4 w-4 flex-shrink-0" />
+              <span>Fields marked with <span className="text-red-500 font-bold">*</span> are required.</span>
+            </div>
 
             {/* Error Message */}
             {locationError && (
@@ -330,10 +416,21 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Globe className="w-5 h-5 text-indigo-600" />
                 Location Information
+                <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 ml-2">
+                  Required
+                </Badge>
               </h3>
               <p className="text-sm text-gray-500">
                 Enter your city and optionally state/country for accurate location services.
               </p>
+              
+              {/* City is mandatory notice */}
+              {!city && (
+                <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-xs">
+                  <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                  <span><strong>City is mandatory</strong> - Without city, you cannot access other dashboard features.</span>
+                </div>
+              )}
 
               {/* City */}
               <div className="space-y-2">
