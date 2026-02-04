@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Bell, AlertTriangle, CheckCircle, TrendingUp, Map, Book, Users as Community, Plus, HandHelping, X, BarChart, Loader2, MapPin } from 'lucide-react'
+import { Bell, AlertTriangle, CheckCircle, TrendingUp, Map, Book, Users as Community, Plus, HandHelping, X, Loader2, MapPin, CloudSun, Shield, Phone, Droplets, Wind, ThermometerSun, ArrowRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/firebase"
 import { collection, query, where, getDocs } from "firebase/firestore"
@@ -102,27 +102,35 @@ export default function Dashboard() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-[200px]" />
+      <div className="min-h-screen p-4 md:p-6 space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-8 w-48" />
+          </div>
           <Skeleton className="h-10 w-10 rounded-full" />
         </div>
-        <div className="grid gap-6">
-          <Skeleton className="h-[180px] w-full rounded-xl" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-[150px]" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-[120px] w-full rounded-lg" />
-              ))}
-            </div>
+        
+        {/* Weather Card Skeleton */}
+        <Skeleton className="h-44 w-full rounded-2xl" />
+        
+        {/* Quick Actions Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-28 w-full rounded-xl" />
+            ))}
           </div>
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-[150px]" />
-            <div className="flex gap-4">
-              <Skeleton className="h-[120px] w-full rounded-lg" />
-              <Skeleton className="h-[120px] w-full rounded-lg" />
-            </div>
+        </div>
+        
+        {/* Stats Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
           </div>
         </div>
       </div>
@@ -130,30 +138,64 @@ export default function Dashboard() {
   }
 
   const quickActions = [
-    { title: "Create SOS", icon: <Plus className="w-6 h-6" />, color: "bg-red-500 hover:bg-red-600", route: "/dashboard/sos" },
-    { title: "View Map", icon: <Map className="w-6 h-6" />, color: "bg-blue-500 hover:bg-blue-600", route: "/dashboard/navigation" },
-    { title: "Resources", icon: <Book className="w-6 h-6" />, color: "bg-green-500 hover:bg-green-600", route: "/dashboard/resources" },
-    { title: "Community Chat", icon: <Community className="w-6 h-6" />, color: "bg-yellow-500 hover:bg-yellow-600", route: "/dashboard/community" },
+    { 
+      title: "Create SOS", 
+      description: "Send emergency alert",
+      icon: <AlertTriangle className="w-5 h-5 md:w-6 md:h-6" />, 
+      gradient: "from-red-500 to-rose-600",
+      hoverGradient: "hover:from-red-600 hover:to-rose-700",
+      route: "/dashboard/sos" 
+    },
+    { 
+      title: "View Map", 
+      description: "See active emergencies",
+      icon: <Map className="w-5 h-5 md:w-6 md:h-6" />, 
+      gradient: "from-blue-500 to-indigo-600",
+      hoverGradient: "hover:from-blue-600 hover:to-indigo-700",
+      route: "/dashboard/navigation" 
+    },
+    { 
+      title: "Resources", 
+      description: "Share or request supplies",
+      icon: <Book className="w-5 h-5 md:w-6 md:h-6" />, 
+      gradient: "from-emerald-500 to-green-600",
+      hoverGradient: "hover:from-emerald-600 hover:to-green-700",
+      route: "/dashboard/resources" 
+    },
+    { 
+      title: "Community", 
+      description: "Chat with neighbors",
+      icon: <Community className="w-5 h-5 md:w-6 md:h-6" />, 
+      gradient: "from-violet-500 to-purple-600",
+      hoverGradient: "hover:from-violet-600 hover:to-purple-700",
+      route: "/dashboard/community" 
+    },
   ]
 
-  const safetyUpdates = [
+  const safetyGuides = [
     { 
-      title: "First Aid Tutorial", 
-      icon: <CheckCircle className="h-5 w-5 text-green-500" />, 
-      description: "Learn essential first aid steps",
+      title: "First Aid", 
+      icon: <CheckCircle className="h-5 w-5" />, 
+      description: "Essential emergency steps",
       key: "firstAid",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-50 dark:bg-emerald-950/50",
     },
     { 
       title: "Flood Safety", 
-      icon: <AlertTriangle className="h-5 w-5 text-blue-500" />, 
-      description: "Flood safety rules & video",
+      icon: <Droplets className="h-5 w-5" />, 
+      description: "Flood survival guide",
       key: "floodSafety",
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-50 dark:bg-blue-950/50",
     },
     { 
-      title: "Earthquake Safety", 
-      icon: <TrendingUp className="h-5 w-5 text-yellow-500" />, 
-      description: "Earthquake safety rules & video",
+      title: "Earthquake", 
+      icon: <TrendingUp className="h-5 w-5" />, 
+      description: "Earthquake protocols",
       key: "earthquakeSafety",
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-50 dark:bg-amber-950/50",
     },
   ]
 
@@ -164,141 +206,219 @@ export default function Dashboard() {
     return "Good evening"
   }
 
+  const getWeatherIcon = (condition: string) => {
+    const lowerCondition = condition.toLowerCase()
+    if (lowerCondition.includes('cloud')) return '☁️'
+    if (lowerCondition.includes('rain')) return '🌧️'
+    if (lowerCondition.includes('sun') || lowerCondition.includes('clear')) return '☀️'
+    if (lowerCondition.includes('snow')) return '❄️'
+    if (lowerCondition.includes('thunder')) return '⛈️'
+    if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return '🌫️'
+    return '🌤️'
+  }
+
   return (
-    <div className="min-h-screen space-y-6">
+    <div className="min-h-screen p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {greeting()}{userCity.fullName ? `, ${userCity.fullName}` : ""}
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            {greeting()}{userCity.fullName ? `, ${userCity.fullName}` : ""} 👋
+          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            Dashboard Overview
+          </h1>
         </div>
+        {userCity.photoURL && (
+          <Avatar className="h-12 w-12 border-2 border-white shadow-md hidden sm:flex">
+            <AvatarImage src={userCity.photoURL} alt={userCity.fullName || "User"} />
+            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+              {userCity.fullName?.charAt(0) || "U"}
+            </AvatarFallback>
+          </Avatar>
+        )}
       </div>
 
-      {/* Weather Card */}
-      <Card className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-lg border-0">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart className="h-5 w-5" />
-            Current Weather
-          </CardTitle>
-          <CardDescription className="text-indigo-100 flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            {userCity.city ? `${userCity.city}${userCity.state ? `, ${userCity.state}` : ""}` : "Location not set"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Weather Card - Enhanced */}
+      <Card className="relative overflow-hidden border-0 shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500" />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+        <CardContent className="relative p-5 md:p-6 text-white">
           {weatherLoading ? (
-            <div className="flex items-center gap-3 py-4">
+            <div className="flex items-center gap-3 py-6">
               <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="text-lg">Loading weather information...</span>
+              <span className="text-lg">Loading weather...</span>
             </div>
           ) : weather ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-4xl font-bold mb-1">{Math.round(weather.main.temp)}°C</div>
-                <div className="text-lg capitalize">{weather.weather[0].description}</div>
-                <div className="text-sm mt-2">
-                  Feels like {Math.round(weather.main.feels_like)}°C • Humidity {weather.main.humidity}%
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="text-5xl md:text-6xl">
+                  {getWeatherIcon(weather.weather[0].main)}
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl md:text-5xl font-bold">{Math.round(weather.main.temp)}°</span>
+                    <span className="text-xl text-white/80">C</span>
+                  </div>
+                  <p className="text-lg capitalize text-white/90 mt-1">{weather.weather[0].description}</p>
+                  <div className="flex items-center gap-1 text-sm text-white/70 mt-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{userCity.city}{userCity.state ? `, ${userCity.state}` : ""}</span>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xl font-semibold">{weather.name}</div>
-                <div className="text-sm">
-                  Wind: {Math.round(weather.wind.speed)} m/s
+              
+              <div className="flex flex-wrap gap-3 md:gap-4">
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2">
+                  <ThermometerSun className="h-4 w-4 text-white/80" />
+                  <div className="text-sm">
+                    <span className="text-white/70">Feels </span>
+                    <span className="font-medium">{Math.round(weather.main.feels_like)}°</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2">
+                  <Droplets className="h-4 w-4 text-white/80" />
+                  <div className="text-sm">
+                    <span className="text-white/70">Humidity </span>
+                    <span className="font-medium">{weather.main.humidity}%</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2">
+                  <Wind className="h-4 w-4 text-white/80" />
+                  <div className="text-sm">
+                    <span className="text-white/70">Wind </span>
+                    <span className="font-medium">{Math.round(weather.wind.speed)} m/s</span>
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
-            <Alert className="bg-white/10 border-white/20 text-white">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Weather Unavailable</AlertTitle>
-              <AlertDescription>
-                {weatherError || "Could not fetch weather data"}
-              </AlertDescription>
-            </Alert>
+            <div className="flex items-center gap-3 py-4">
+              <CloudSun className="h-8 w-8 text-white/70" />
+              <div>
+                <p className="font-medium">Weather Unavailable</p>
+                <p className="text-sm text-white/70">{weatherError || "Set your city in profile"}</p>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Quick Actions - Enhanced */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+            onClick={() => router.push('/dashboard/sos')}
+          >
+            View All
+            <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {quickActions.map((action, index) => (
-            <Button 
+            <button 
               key={index} 
-              className={`${action.color} text-white h-24 flex flex-col items-center justify-center gap-2 rounded-xl transition-all hover:shadow-md`}
+              className={`group relative overflow-hidden bg-gradient-to-br ${action.gradient} ${action.hoverGradient} text-white p-4 md:p-5 rounded-2xl transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-left`}
               onClick={() => router.push(action.route)}
             >
-              <div className="p-2 bg-white/20 rounded-full">
-                {action.icon}
+              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="relative">
+                <div className="bg-white/20 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 group-hover:bg-white/30 transition-colors">
+                  {action.icon}
+                </div>
+                <h3 className="font-semibold text-sm md:text-base">{action.title}</h3>
+                <p className="text-xs text-white/80 mt-0.5 hidden md:block">{action.description}</p>
               </div>
-              <span className="font-medium">{action.title}</span>
-            </Button>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Safety Stats */}
-      <div className="space-y-3">
+      {/* Stats Cards - Enhanced */}
+      <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Your Safety Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0">
-            <CardContent className="p-6">
+          <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="relative p-5 md:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="h-5 w-5" />
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <AlertTriangle className="h-5 w-5" />
+                    </div>
                     <span className="font-medium">SOS Raised</span>
                   </div>
-                  <div className="text-3xl font-bold">{sosRaised}</div>
+                  <div className="text-4xl font-bold">{sosRaised}</div>
+                  <p className="text-sm text-white/70 mt-1">Total emergencies reported</p>
                 </div>
-                <div className="text-sm opacity-80">Last 30 days</div>
+                <div className="text-6xl font-bold text-white/10">🆘</div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-r from-green-500 to-emerald-400 text-white border-0">
-            <CardContent className="p-6">
+          
+          <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="relative p-5 md:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <HandHelping className="h-5 w-5" />
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <HandHelping className="h-5 w-5" />
+                    </div>
                     <span className="font-medium">SOS Responded</span>
                   </div>
-                  <div className="text-3xl font-bold">{sosResponded}</div>
+                  <div className="text-4xl font-bold">{sosResponded}</div>
+                  <p className="text-sm text-white/70 mt-1">People you helped</p>
                 </div>
-                <div className="text-sm opacity-80">Last 30 days</div>
+                <div className="text-6xl font-bold text-white/10">🤝</div>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Safety Updates */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Safety Guide</h2>
+      {/* Safety Guides - Enhanced */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Safety Guides</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+            onClick={() => router.push('/dashboard/safety')}
+          >
+            View All 12 Guides
+            <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {safetyUpdates.map((update, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {safetyGuides.map((guide, index) => (
             <Card 
               key={index} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setOpenPopup(update.key)}
+              className="group cursor-pointer border border-gray-200 dark:border-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-300"
+              onClick={() => setOpenPopup(guide.key)}
             >
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
-                    {update.icon}
+              <CardContent className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-xl ${guide.bgColor}`}>
+                    <div className={guide.color}>{guide.icon}</div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{update.title}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {guide.title}
+                    </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {update.description}
+                      {guide.description}
                     </p>
                   </div>
+                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </CardContent>
             </Card>
@@ -306,19 +426,38 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Popup for Safety Rules */}
+      {/* Additional Quick Links */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon: <Shield className="h-5 w-5" />, label: "Safety", route: "/dashboard/safety", color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-950/50" },
+          { icon: <CloudSun className="h-5 w-5" />, label: "Weather", route: "/dashboard/weather", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/50" },
+          { icon: <Phone className="h-5 w-5" />, label: "Emergency", route: "/dashboard/emergency", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/50" },
+          { icon: <Community className="h-5 w-5" />, label: "Profile", route: "/dashboard/profile", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/50" },
+        ].map((item, index) => (
+          <button
+            key={index}
+            onClick={() => router.push(item.route)}
+            className={`flex items-center gap-3 p-4 rounded-xl ${item.bg} hover:opacity-80 transition-all duration-200 group`}
+          >
+            <div className={item.color}>{item.icon}</div>
+            <span className={`font-medium text-sm ${item.color}`}>{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Safety Guide Popup Modal */}
       {openPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-lg w-full p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95 duration-200">
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2"
+              className="absolute top-3 right-3 z-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => setOpenPopup(null)}
             >
               <X className="h-5 w-5" />
             </Button>
-            <div>
+            <div className="p-6">
               {openPopup === "firstAid" && (
                 <FirstAidTutorial
                   open={true}

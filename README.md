@@ -11,11 +11,13 @@
 
 <!-- Badges Row 2 -->
 <p>
-  <img src="https://img.shields.io/badge/Next.js-15.5-black?style=flat-square&logo=next.js" alt="Next.js"/>
-  <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react" alt="React"/>
+  <img src="https://img.shields.io/badge/Next.js-15.3-black?style=flat-square&logo=next.js" alt="Next.js"/>
+  <img src="https://img.shields.io/badge/React-18.2-61DAFB?style=flat-square&logo=react" alt="React"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript" alt="TypeScript"/>
-  <img src="https://img.shields.io/badge/Firebase-Auth%20%26%20DB-FFCA28?style=flat-square&logo=firebase" alt="Firebase"/>
+  <img src="https://img.shields.io/badge/Firebase-12.0-FFCA28?style=flat-square&logo=firebase" alt="Firebase"/>
   <img src="https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?style=flat-square&logo=tailwindcss" alt="TailwindCSS"/>
+  <img src="https://img.shields.io/badge/Leaflet-Maps-199900?style=flat-square&logo=leaflet" alt="Leaflet"/>
+  <img src="https://img.shields.io/badge/Framer_Motion-Animations-0055FF?style=flat-square&logo=framer" alt="Framer Motion"/>
 </p>
 
 <br/>
@@ -39,6 +41,7 @@
 
 - [🌟 About](#-about)
 - [✨ Features](#-features)
+- [🏗️ Architecture & Flow](#️-architecture--flow)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [📁 Project Structure](#-project-structure)
 - [🚀 Quick Start](#-quick-start)
@@ -72,32 +75,199 @@
 <tr>
 <td width="50%">
 
-### 🆘 Emergency Response
-- **SOS Alerts** - One-tap emergency broadcast with GPS
-- **Priority Levels** - High/Medium/Low categorization
-- **Real-time Tracking** - Live location sharing
-- **Push Notifications** - Instant alert delivery
+### 🆘 Emergency SOS System
+- **One-tap SOS Broadcast** - Instantly alert your community with GPS location
+- **9 Emergency Types** - Medical, Fire, Robbery, Accident, Domestic Violence, Natural Disaster, Missing Person, Public Disturbance, Other
+- **3-Level Priority System** - High/Medium/Low urgency categorization
+- **Image Attachments** - Upload evidence or situation photos
+- **SOS Management** - Create, edit, view, and delete your SOS requests
+- **Real-time Status Tracking** - Track responders and SOS status
+- **5-Second Cancel Window** - Prevent accidental alerts
 
 </td>
 <td width="50%">
 
-### 🗺️ Smart Mapping
-- **Interactive Maps** - Visualize emergencies & resources
-- **Safe Zones** - Identify evacuation points
-- **Resource Locations** - Find nearby supplies
-- **Route Planning** - Navigate to safety
+### 🗺️ Interactive Navigation & Mapping
+- **Leaflet-based Maps** - Visualize all SOS requests on interactive map
+- **Real-time SOS Markers** - Color-coded by urgency level
+- **Emergency Type Filtering** - Filter map markers by disaster type
+- **Click-to-Respond** - View SOS details and respond directly from map
+- **Profile-based Location** - Auto-center map on user's city
+- **Responder Tracking** - See who responded to each emergency
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-### 🌤️ Weather Intelligence
-- **Dual API System** - WeatherAPI.com (3-day, primary) + OpenWeatherMap (5-day, fallback/extended)
-- **Combined Forecasts** - Up to 5-day forecast by combining both APIs
-- **Hourly Forecasts** - 24-hour detailed predictions
-- **Profile-based Location** - Uses city from user profile
-- **Transparent Sources** - Shows which API provided each day's forecast
+### 🌤️ Advanced Weather Intelligence
+- **Dual API System** - WeatherAPI.com (primary) + OpenWeatherMap (fallback)
+- **5-Day Combined Forecast** - Merges data from both APIs
+- **24-Hour Hourly Predictions** - Detailed hourly weather data
+- **Current Conditions Widget** - Temperature, humidity, wind, UV index
+- **Profile-based Location** - Automatic weather for user's city
+- **Source Transparency** - Shows which API provided each forecast
+- **Sunrise/Sunset Times** - Daily astronomical data
+
+</td>
+<td width="50%">
+
+### 👥 Community Hub & Chat
+- **City-based Chat Rooms** - Connect with people in your area
+- **Real-time Messaging** - Instant message delivery via Firebase
+- **Media Sharing** - Share images, videos, and documents (Base64)
+- **Active User Counter** - See how many are online in your city
+- **Persistent History** - Messages stored in Firestore
+- **User Identification** - Display names and avatars
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📦 Resource Management
+- **Resource Offers** - Share supplies (Medical, Food, Shelter, etc.)
+- **Resource Requests** - Request needed supplies with urgency levels
+- **8 Categories** - Medical, Food/Water, Shelter, Rescue, Communication, Transportation, Tools, Power/Fuel
+- **City-based Matching** - Connect with resources in your area
+- **Status Tracking** - Available, Claimed, Fulfilled, Pending
+- **Contact Integration** - Direct phone contact with resource providers
+
+</td>
+<td width="50%">
+
+### 📞 Emergency Contacts
+- **National Emergency Numbers** - Quick access to 112, 100, 101, 102
+- **Personal Emergency Contacts** - Add family/friends as emergency contacts
+- **One-tap Calling** - Direct call integration
+- **Location Sharing** - Share GPS location via Google Maps link
+- **WhatsApp Integration** - Send SOS message with location
+- **SMS Emergency Alerts** - Send emergency SMS to contacts
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📚 Comprehensive Safety Guides
+- **12 Disaster Types Covered:**
+  - 🩺 First Aid Tutorial
+  - 🌊 Flood Safety
+  - 🌏 Earthquake Safety
+  - 🔥 Fire Safety
+  - 🌀 Cyclone Safety
+  - 🧪 Chemical Safety
+  - ⚡ Electrical Safety
+  - 🌩️ Lightning Safety
+  - ⛰️ Landslide Safety
+  - 🌊 Tsunami Safety
+  - ❄️ Extreme Cold Safety
+  - 🌡️ Extreme Heat Safety
+- **Video Tutorials** - Embedded safety videos
+- **Step-by-step Protocols** - Clear action guides
+- **Search Functionality** - Quick find safety topics
+
+</td>
+<td width="50%">
+
+### 🔐 Secure Authentication & Profile
+- **Firebase Authentication** - Email/Password + Google Sign-in
+- **Profile Management** - Complete user profiles with location
+- **Location Validation** - OpenStreetMap Nominatim geocoding
+- **First-time User Flow** - Guided profile completion
+- **Protected Routes** - Dashboard requires authentication
+- **Session Persistence** - Stay logged in across sessions
+- **Context-based Auth** - Global auth state management
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ Architecture & Flow
+
+### Application Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        USER ENTRY POINTS                        │
+├─────────────────────────────────────────────────────────────────┤
+│  Landing Page (/) → HeroSection + Features + Contact            │
+│       ↓                                                         │
+│  Auth Required → Login/Signup (Firebase Auth)                   │
+│       ↓                                                         │
+│  Profile Setup (First-time users must set city)                 │
+│       ↓                                                         │
+│  Dashboard (Protected Route)                                    │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                     DASHBOARD MODULES                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │  Dashboard  │  │   Profile   │  │     SOS     │             │
+│  │   Overview  │  │  Management │  │   System    │             │
+│  │ • Weather   │  │ • Edit Info │  │ • Create    │             │
+│  │ • Stats     │  │ • Location  │  │ • Manage    │             │
+│  │ • Actions   │  │ • Avatar    │  │ • Track     │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │   Weather   │  │  Community  │  │  Emergency  │             │
+│  │   Center    │  │    Chat     │  │   Contacts  │             │
+│  │ • Current   │  │ • Messages  │  │ • National  │             │
+│  │ • Hourly    │  │ • Media     │  │ • Personal  │             │
+│  │ • Daily     │  │ • Users     │  │ • Share     │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ Navigation  │  │  Resources  │  │   Safety    │             │
+│  │    Map      │  │   Sharing   │  │   Guides    │             │
+│  │ • SOS Map   │  │ • Offers    │  │ • 12 Types  │             │
+│  │ • Respond   │  │ • Requests  │  │ • Videos    │             │
+│  │ • Filter    │  │ • Contact   │  │ • Search    │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATA FLOW ARCHITECTURE                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Client (Next.js)  ←→  API Routes  ←→  External APIs            │
+│       ↕                    ↕                                    │
+│  Firebase Firestore (Real-time DB)                              │
+│       ↕                                                         │
+│  Firebase Auth (Authentication)                                 │
+│                                                                 │
+│  Collections:                                                   │
+│  • users - User profiles with location                          │
+│  • sos_requests - Emergency SOS data                            │
+│  • chats_users/{city}/messages - Community chat                 │
+│  • personal_contacts - Emergency contacts                       │
+│  • resources_offers - Resource sharing                          │
+│  • resources_requests - Resource needs                          │
+│  • notifications - User notifications                           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key Technical Highlights
+
+| Feature | Implementation |
+|---------|---------------|
+| **Real-time Updates** | Firebase Firestore `onSnapshot` listeners |
+| **Authentication** | Firebase Auth with Context Provider |
+| **Location Services** | OpenStreetMap Nominatim API for geocoding |
+| **Weather Data** | Dual API (WeatherAPI + OpenWeatherMap) with fallback |
+| **Maps** | Leaflet with React-Leaflet wrapper |
+| **Animations** | Framer Motion for smooth transitions |
+| **State Management** | React hooks + Context API |
+| **UI Components** | shadcn/ui + Radix UI primitives |
+| **Styling** | Tailwind CSS with dark mode support |
+| **Form Handling** | React Hook Form + Zod validation |
 
 </td>
 <td width="50%">
@@ -140,13 +310,33 @@
 
 | Category | Technologies |
 |:--------:|:------------|
-| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js_15.5-black?style=flat-square&logo=next.js) ![React](https://img.shields.io/badge/React_18.3-61DAFB?style=flat-square&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) |
-| **Styling** | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) ![Framer](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) ![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=flat-square) |
-| **Backend** | ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel) |
-| **APIs** | ![WeatherAPI](https://img.shields.io/badge/WeatherAPI-5A9FD4?style=flat-square) ![OpenWeather](https://img.shields.io/badge/OpenWeatherMap-EB6E4C?style=flat-square) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=google&logoColor=white) |
-| **State** | ![React Query](https://img.shields.io/badge/React_Hooks-61DAFB?style=flat-square&logo=react&logoColor=black) |
+| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js_15.3-black?style=flat-square&logo=next.js) ![React](https://img.shields.io/badge/React_18.2-61DAFB?style=flat-square&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white) |
+| **Styling** | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS_3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) ![Framer](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) ![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=flat-square) ![Radix UI](https://img.shields.io/badge/Radix_UI-161618?style=flat-square) |
+| **Backend & Database** | ![Firebase](https://img.shields.io/badge/Firebase_12.0-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Firestore](https://img.shields.io/badge/Firestore-DD2C00?style=flat-square&logo=firebase) ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel) |
+| **Maps & Location** | ![Leaflet](https://img.shields.io/badge/Leaflet_1.9-199900?style=flat-square&logo=leaflet&logoColor=white) ![React-Leaflet](https://img.shields.io/badge/React_Leaflet-61DAFB?style=flat-square) ![OpenStreetMap](https://img.shields.io/badge/OSM_Nominatim-7EBC6F?style=flat-square) |
+| **Weather APIs** | ![WeatherAPI](https://img.shields.io/badge/WeatherAPI.com-5A9FD4?style=flat-square) ![OpenWeatherMap](https://img.shields.io/badge/OpenWeatherMap-EB6E4C?style=flat-square) |
+| **Forms & Validation** | ![React Hook Form](https://img.shields.io/badge/React_Hook_Form-EC5990?style=flat-square) ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=flat-square) |
+| **State & Hooks** | ![React Context](https://img.shields.io/badge/Context_API-61DAFB?style=flat-square&logo=react&logoColor=black) ![Custom Hooks](https://img.shields.io/badge/Custom_Hooks-764ABC?style=flat-square) |
+| **Analytics** | ![Vercel Analytics](https://img.shields.io/badge/Vercel_Analytics-000000?style=flat-square&logo=vercel) |
 
 </div>
+
+### Dependencies Overview
+
+```
+Core Framework:     Next.js 15.3, React 18.2, TypeScript 5
+UI Components:      shadcn/ui, Radix UI, Lucide Icons, Heroicons
+Styling:            TailwindCSS 3.4, Framer Motion, tailwind-merge
+Authentication:     Firebase Auth (Email + Google), NextAuth.js
+Database:           Firebase Firestore (Real-time)
+Maps:               Leaflet, React-Leaflet
+Weather:            WeatherAPI.com, OpenWeatherMap
+Forms:              React Hook Form, Zod validation
+HTTP Client:        Axios
+Date Handling:      date-fns
+Charts:             Recharts
+Utilities:          clsx, class-variance-authority
+```
 
 ---
 
@@ -154,24 +344,80 @@
 
 ```
 saviour/
-├── 📂 public/              # Static assets & safety videos
+├── 📂 public/                    # Static assets & safety videos
+│   └── 📂 safety-videos/         # Tutorial videos for safety guides
 ├── 📂 src/
-│   ├── 📂 app/             # Next.js App Router
-│   │   ├── 📂 api/         # API routes (weather, email)
-│   │   ├── 📂 auth/        # Login, Signup, Error pages
-│   │   └── 📂 dashboard/   # User dashboard & features
+│   ├── 📂 app/                   # Next.js App Router
+│   │   ├── 📄 layout.tsx         # Root layout with providers
+│   │   ├── 📄 page.tsx           # Landing page (Hero, Features, Contact)
+│   │   ├── 📄 globals.css        # Global styles
+│   │   ├── 📄 providers.tsx      # Auth & theme providers
+│   │   ├── 📂 api/               # API routes
+│   │   │   ├── 📂 weather/       # Weather API (dual source)
+│   │   │   ├── 📂 weather-widget/# Dashboard weather widget
+│   │   │   └── 📂 send-email/    # Contact form email handler
+│   │   ├── 📂 auth/              # Authentication pages
+│   │   │   ├── 📂 login/         # Login page
+│   │   │   ├── 📂 signup/        # Signup page
+│   │   │   └── 📂 error/         # Auth error page
+│   │   ├── 📂 dashboard/         # Protected dashboard routes
+│   │   │   ├── 📄 layout.tsx     # Dashboard layout with sidebar
+│   │   │   ├── 📄 page.tsx       # Dashboard overview
+│   │   │   ├── 📂 profile/       # User profile management
+│   │   │   ├── 📂 sos/           # SOS create & manage
+│   │   │   ├── 📂 weather/       # Weather forecasts
+│   │   │   ├── 📂 community/     # City-based chat
+│   │   │   ├── 📂 emergency/     # Emergency contacts
+│   │   │   ├── 📂 navigation/    # SOS map view
+│   │   │   ├── 📂 resources/     # Resource sharing
+│   │   │   └── 📂 safety/        # Safety guides
+│   │   ├── 📂 about/             # About page
+│   │   ├── 📂 services/          # Services page
+│   │   ├── 📂 contact/           # Contact page
+│   │   ├── 📂 privacy/           # Privacy policy
+│   │   └── 📂 terms/             # Terms of service
 │   ├── 📂 components/
-│   │   ├── 📂 Safety/      # Disaster-specific safety guides
-│   │   ├── 📂 ui/          # shadcn/ui components
-│   │   ├── 📂 Modals/      # Modal components
-│   │   └── 📂 weather/     # Weather display components
-│   ├── 📂 hooks/           # Custom React hooks
-│   ├── 📂 lib/             # Utilities, Firebase config, actions
-│   └── 📂 types/           # TypeScript definitions
-├── 📄 .env.example         # Environment template
-├── 📄 next.config.js       # Next.js configuration
-├── 📄 tailwind.config.js   # Tailwind configuration
-└── 📄 package.json         # Dependencies
+│   │   ├── 📂 Safety/            # 12 disaster-specific safety guides
+│   │   │   ├── First-Aid-Tutorial.tsx
+│   │   │   ├── Flood-Safety.tsx
+│   │   │   ├── Earthquake-Safety.tsx
+│   │   │   ├── Fire-Safety.tsx
+│   │   │   ├── Cyclone-Safety.tsx
+│   │   │   ├── Chemical-Safety.tsx
+│   │   │   ├── Electrical-Safety.tsx
+│   │   │   ├── Lightning-Safety.tsx
+│   │   │   ├── Landslide-Safety.tsx
+│   │   │   ├── Tsunami-Safety.tsx
+│   │   │   ├── Extreme-Cold-Safety.tsx
+│   │   │   └── Extreme-Heat-Safety.tsx
+│   │   ├── 📂 ui/                # shadcn/ui components
+│   │   ├── 📂 weather/           # Weather display components
+│   │   ├── 📂 Modals/            # Modal components (SOSEditModal)
+│   │   ├── 📄 HeroSection.tsx    # Landing hero
+│   │   ├── 📄 FeatureSection.tsx # Features showcase
+│   │   ├── 📄 community-chat.tsx # Chat component
+│   │   ├── 📄 MapWrapper.tsx     # Leaflet map component
+│   │   ├── 📄 Sidebar.tsx        # Dashboard sidebar
+│   │   └── 📄 ...                # Other components
+│   ├── 📂 hooks/                 # Custom React hooks
+│   │   ├── 📄 useUserCity.ts     # User location hook
+│   │   ├── 📄 use-toast.ts       # Toast notifications
+│   │   ├── 📄 use-mobile.tsx     # Mobile detection
+│   │   └── 📄 useResponsive.ts   # Responsive utilities
+│   ├── 📂 lib/                   # Utilities & config
+│   │   ├── 📄 firebase.ts        # Firebase initialization
+│   │   ├── 📄 auth-context.tsx   # Auth context provider
+│   │   ├── 📄 sidebarItems.ts    # Sidebar navigation config
+│   │   ├── 📄 utils.ts           # Utility functions
+│   │   └── 📄 env.ts             # Environment helpers
+│   └── 📂 types/                 # TypeScript definitions
+│       └── 📄 user.ts            # User type definitions
+├── 📄 middleware.ts              # Next.js middleware
+├── 📄 next.config.js             # Next.js configuration
+├── 📄 tailwind.config.js         # Tailwind configuration
+├── 📄 tsconfig.json              # TypeScript configuration
+├── 📄 components.json            # shadcn/ui configuration
+└── 📄 package.json               # Dependencies & scripts
 ```
 
 ---
@@ -303,22 +549,42 @@ CONTACT_RECIPIENT_EMAIL=contact@saviour.app
 <div align="center">
 
 ### 🏠 Home Page
-The main landing page showcasing the disaster management platform with a modern, intuitive design.
+The main landing page showcasing the disaster management platform with a modern, animated design featuring Hero section, Feature showcase, and Contact form.
 
-### 📊 Dashboard
-Real-time dashboard providing comprehensive overview of emergency situations, weather alerts, and community resources.
+### 📊 Dashboard Overview
+Real-time dashboard with weather widget, quick action buttons (Create SOS, View Map, Resources, Community), safety stats (SOS Raised/Responded), and safety guides.
 
-### 🆘 Emergency SOS
-One-tap emergency broadcast system with GPS tracking for rapid response during critical situations.
+### 🆘 SOS Emergency System
+- **Create SOS:** 9 emergency types, 3 urgency levels, description, image upload
+- **Manage SOS:** View, edit, delete your SOS requests with status tracking
+- **5-second cancel:** Prevent accidental emergency alerts
 
-### 🌤️ Weather Monitoring
-Live weather data integration with severe alert notifications and 5-day forecasting capabilities.
+### 🗺️ Navigation Map
+Interactive Leaflet map showing all SOS requests with:
+- Color-coded markers (Red: High, Yellow: Medium, Blue: Low)
+- Emergency type filtering
+- Click-to-view details and respond
+
+### 🌤️ Weather Center
+Comprehensive weather page with:
+- Current conditions (temp, feels like, humidity, wind, UV)
+- 24-hour hourly forecast
+- 5-day daily forecast (combined from WeatherAPI + OpenWeatherMap)
+
+### 👥 Community Chat
+City-based real-time chat with media sharing (images, videos, documents), user avatars, and message history.
+
+### 📦 Resource Management
+Three tabs: Available Offers, My Offers, My Requests with 8 resource categories and urgency-based prioritization.
+
+### 📞 Emergency Contacts
+National emergency numbers (112, 100, 101, 102) + personal emergency contacts with location sharing.
 
 ### 📚 Safety Guides
-Comprehensive disaster-specific safety guidelines with video tutorials and offline access features.
+12 comprehensive safety guides with search, video tutorials, and step-by-step protocols.
 
-### 👨‍💼 Admin Panel
-Advanced management interface for administrators to coordinate resources, monitor alerts, and manage community.
+### 👤 Profile Management
+User profile with location validation (OpenStreetMap Nominatim), photo, and contact information.
 
 <br/>
 
@@ -353,6 +619,24 @@ git push origin feature/AmazingFeature
 - Test your changes thoroughly
 
 ---
+
+## 📄 License
+
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
+
+```
+Copyright 2024-2026 Ravikumar & Saviour Team
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```
+
+---
+
+<div align="center">
 
 **⭐ Star this repository if it helped you!**
 
